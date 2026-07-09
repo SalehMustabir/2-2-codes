@@ -11,20 +11,34 @@ public class OrderItem {
     private final MenuItem menuItem;
     private final int quantity;
     private final Size size;
-    private final boolean extraCheese;
+    private final boolean extraCheese;    
     private final boolean spicy;
     private final String note;
 
-    public OrderItem(MenuItem menuItem, int quantity, Size size, boolean extraCheese, boolean spicy, String note) {
-        this.menuItem = Objects.requireNonNull(menuItem, "Menu item cannot be null");
-        if (quantity <= 0) {
+    // public OrderItem(MenuItem menuItem, int quantity, Size size, boolean extraCheese, boolean spicy, String note) {
+    //     this.menuItem = Objects.requireNonNull(menuItem, "Menu item cannot be null");
+    //     if (quantity <= 0) {
+    //         throw new IllegalArgumentException("Quantity must be positive");
+    //     }
+    //     this.quantity = quantity;
+    //     this.size = size != null ? size : Size.MEDIUM;
+    //     this.extraCheese = extraCheese;
+    //     this.spicy = spicy;
+    //     this.note = note != null ? note.trim() : "";
+    // }
+    private OrderItem(Builder builder) {
+        // 1. Required fields and validation
+        this.menuItem = Objects.requireNonNull(builder.menuItem, "Menu item cannot be null");
+        if (builder.quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");
         }
-        this.quantity = quantity;
-        this.size = size != null ? size : Size.MEDIUM;
-        this.extraCheese = extraCheese;
-        this.spicy = spicy;
-        this.note = note != null ? note.trim() : "";
+        this.quantity = builder.quantity;
+        
+        // 2. Optional fields (Defaults are already handled inside the Builder)
+        this.size = builder.size;
+        this.extraCheese = builder.extraCheese;
+        this.spicy = builder.spicy;
+        this.note = builder.note;
     }
 
     public MenuItem getMenuItem() {
@@ -84,6 +98,51 @@ public class OrderItem {
                 menuItem.getName(),
                 describeOptions(),
                 getSubtotal());
+    }
+    public static class Builder {
+        // Required parameters
+        private final MenuItem menuItem;
+        private final int quantity;
+
+        // Optional parameters initialized to their default values
+        private Size size = Size.MEDIUM;
+        private boolean extraCheese = false;
+        private boolean spicy = false;
+        private String note = "";
+
+        //Absolute required fields constructor
+        public Builder(MenuItem menuItem, int quantity) {
+            this.menuItem = menuItem;
+            this.quantity = quantity;
+        }
+
+        //Setters for constructing the OrderItem object(Oprional fields)
+
+        public Builder size(Size size) {
+            this.size = size != null ? size : Size.MEDIUM;
+            return this;
+        }
+
+        public Builder extraCheese(boolean extraCheese) {
+            this.extraCheese = extraCheese;
+            return this;
+        }
+
+        public Builder spicy(boolean spicy) {
+            this.spicy = spicy;
+            return this;
+        }
+
+        public Builder note(String note) {
+            
+            this.note = note != null ? note.trim() : "";
+            return this;
+        }
+
+        //Returns the constructed OrderItem object(immutable)
+        public OrderItem build() {
+            return new OrderItem(this);
+        }
     }
 }
 
