@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np AW32DW
 import matplotlib.pyplot as plt
 
 T_MIN, T_MAX, N = -4.0, 4.0, 4001
