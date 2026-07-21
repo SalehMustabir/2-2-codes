@@ -27,18 +27,18 @@ public class OrderItem {
     //     this.note = note != null ? note.trim() : "";
     // }
     private OrderItem(Builder builder) {
-        // 1. Required fields and validation
+        // Required fields
         this.menuItem = Objects.requireNonNull(builder.menuItem, "Menu item cannot be null");
         if (builder.quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");
         }
         this.quantity = builder.quantity;
         
-        // 2. Optional fields (Defaults are already handled inside the Builder)
-        this.size = builder.size;
+        // Optional fields
+        this.size = builder.size != null ? builder.size : Size.MEDIUM;
         this.extraCheese = builder.extraCheese;
         this.spicy = builder.spicy;
-        this.note = builder.note;
+        this.note = builder.note != null ? builder.note.trim() : "";
     }
 
     public MenuItem getMenuItem() {
@@ -119,7 +119,8 @@ public class OrderItem {
         //Setters for constructing the OrderItem object(Oprional fields)
 
         public Builder size(Size size) {
-            this.size = size != null ? size : Size.MEDIUM;
+            //this.size = size != null ? size : Size.MEDIUM;
+            this.size = size;
             return this;
         }
 
@@ -135,7 +136,8 @@ public class OrderItem {
 
         public Builder note(String note) {
             
-            this.note = note != null ? note.trim() : "";
+            //this.note = note != null ? note.trim() : "";
+            this.note = note;
             return this;
         }
 

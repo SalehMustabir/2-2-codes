@@ -36,52 +36,91 @@ public class Order {
     private final String specialInstructions;
 
     private Order(Builder builder) {
-        // 1. Required fields are strictly validated
+        // must required
         this.orderId = requireNonBlank(builder.orderId, "Order id");
         this.customerName = requireNonBlank(builder.customerName, "Customer name");
         this.phone = requireNonBlank(builder.phone, "Phone");
-        
+
         Objects.requireNonNull(builder.items, "Items cannot be null");
         if (builder.items.isEmpty()) {
             throw new IllegalArgumentException("Order must contain at least one item");
         }
         this.items = Collections.unmodifiableList(new ArrayList<>(builder.items));
 
-        // 2. Complex business rule validation
-        if (builder.deliveryType == DeliveryType.DELIVERY) {
+        this.deliveryType = builder.deliveryType != null ? builder.deliveryType : DeliveryType.PICKUP;
+        this.paymentMethod = builder.paymentMethod != null ? builder.paymentMethod : PaymentMethod.CASH;
+        this.scheduledTime = builder.scheduledTime;
+        this.couponCode = builder.couponCode != null ? builder.couponCode.trim().toUpperCase() : "";
+        this.giftWrap = builder.giftWrap;
+        this.cutleryRequired = builder.cutleryRequired;
+        this.loyaltyPointsToRedeem = Math.max(0, builder.loyaltyPointsToRedeem);
+        this.rushOrder = builder.rushOrder;
+        this.specialInstructions = builder.specialInstructions != null ? builder.specialInstructions.trim() : "";
+
+        if (this.deliveryType == DeliveryType.DELIVERY) {
             this.deliveryAddress = requireNonBlank(builder.deliveryAddress, "Delivery address");
         } else {
             this.deliveryAddress = builder.deliveryAddress != null ? builder.deliveryAddress.trim() : "";
         }
-
-        // 3. Direct assignment from builder (defaults and formatting are handled by the Builder)
-        this.deliveryType = builder.deliveryType;
-        this.paymentMethod = builder.paymentMethod;
-        this.scheduledTime = builder.scheduledTime;
-        this.couponCode = builder.couponCode;
-        this.giftWrap = builder.giftWrap;
-        this.cutleryRequired = builder.cutleryRequired;
-        this.loyaltyPointsToRedeem = builder.loyaltyPointsToRedeem;
-        this.rushOrder = builder.rushOrder;
-        this.specialInstructions = builder.specialInstructions;
     }
 
-    // --- GETTERS & BUSINESS LOGIC (Untouched, behaves exactly as before) ---
+    // Getters and service type
 
-    public String getOrderId() { return orderId; }
-    public String getCustomerName() { return customerName; }
-    public String getPhone() { return phone; }
-    public DeliveryType getDeliveryType() { return deliveryType; }
-    public String getDeliveryAddress() { return deliveryAddress; }
-    public PaymentMethod getPaymentMethod() { return paymentMethod; }
-    public LocalDateTime getScheduledTime() { return scheduledTime; }
-    public String getCouponCode() { return couponCode; }
-    public boolean isGiftWrap() { return giftWrap; }
-    public boolean isCutleryRequired() { return cutleryRequired; }
-    public int getLoyaltyPointsToRedeem() { return loyaltyPointsToRedeem; }
-    public boolean isRushOrder() { return rushOrder; }
-    public List<OrderItem> getItems() { return items; }
-    public String getSpecialInstructions() { return specialInstructions; }
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public DeliveryType getDeliveryType() {
+        return deliveryType;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public LocalDateTime getScheduledTime() {
+        return scheduledTime;
+    }
+
+    public String getCouponCode() {
+        return couponCode;
+    }
+
+    public boolean isGiftWrap() {
+        return giftWrap;
+    }
+
+    public boolean isCutleryRequired() {
+        return cutleryRequired;
+    }
+
+    public int getLoyaltyPointsToRedeem() {
+        return loyaltyPointsToRedeem;
+    }
+
+    public boolean isRushOrder() {
+        return rushOrder;
+    }
+
+    public List<OrderItem> getItems() {
+        return items;
+    }
+
+    public String getSpecialInstructions() {
+        return specialInstructions;
+    }
 
     public double getSubtotal() {
         return items.stream().mapToDouble(OrderItem::getSubtotal).sum();
@@ -125,6 +164,7 @@ public class Order {
         }
         return trimmed;
     }
+
     public static class Builder {
         // Required parameters
         private final String orderId;
@@ -139,14 +179,11 @@ public class Order {
         private LocalDateTime scheduledTime = null;
         private String couponCode = "";
         private boolean giftWrap = false;
-        private boolean cutleryRequired = true; // Based on your original shorthand constructor default
+        private boolean cutleryRequired = true;
         private int loyaltyPointsToRedeem = 0;
         private boolean rushOrder = false;
         private String specialInstructions = "";
-
-        /**
-         * The Builder constructor demands ONLY the absolute required fields.
-         */
+        //takes absolute values
         public Builder(String orderId, String customerName, String phone, List<OrderItem> items) {
             this.orderId = orderId;
             this.customerName = customerName;
@@ -154,10 +191,10 @@ public class Order {
             this.items = items;
         }
 
-        // --- FLUENT SETTERS FOR OPTIONAL FIELDS ---
-        
+        // sophisticated setters coated as builder
+
         public Builder deliveryType(DeliveryType deliveryType) {
-            this.deliveryType = deliveryType != null ? deliveryType : DeliveryType.PICKUP;
+            this.deliveryType = deliveryType;
             return this;
         }
 
@@ -167,7 +204,7 @@ public class Order {
         }
 
         public Builder paymentMethod(PaymentMethod paymentMethod) {
-            this.paymentMethod = paymentMethod != null ? paymentMethod : PaymentMethod.CASH;
+            this.paymentMethod = paymentMethod;
             return this;
         }
 
@@ -177,8 +214,7 @@ public class Order {
         }
 
         public Builder couponCode(String couponCode) {
-            // Normalizing the input right inside the builder step!
-            this.couponCode = couponCode != null ? couponCode.trim().toUpperCase() : "";
+            this.couponCode = couponCode;
             return this;
         }
 
@@ -193,8 +229,7 @@ public class Order {
         }
 
         public Builder loyaltyPointsToRedeem(int loyaltyPointsToRedeem) {
-            // Enforce minimum of 0 here
-            this.loyaltyPointsToRedeem = Math.max(0, loyaltyPointsToRedeem);
+            this.loyaltyPointsToRedeem = loyaltyPointsToRedeem;
             return this;
         }
 
@@ -204,13 +239,12 @@ public class Order {
         }
 
         public Builder specialInstructions(String specialInstructions) {
-            this.specialInstructions = specialInstructions != null ? specialInstructions.trim() : "";
+            this.specialInstructions = specialInstructions;
             return this;
         }
 
-        /**
-         * The final step: constructs the immutable Order object.
-         */
+        
+        //building the object
         public Order build() {
             return new Order(this);
         }
