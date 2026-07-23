@@ -13,22 +13,30 @@ import numpy as np
 from signal_lti import DiscreteSignal, LTISystem, readable_time_ticks
 
 
-# Build a DiscreteSignal from a range and a list of values.
+# Arguments: start_time and end_time are integers; values is a list of samples.
+# Returns: DiscreteSignal with values placed from start_time through end_time.
+# Example: make_signal(2, 4, [7, 8, 9]) creates x[2] = 7, x[3] = 8, x[4] = 9.
 def make_signal(start_time, end_time, values):
     raise NotImplementedError("Complete make_signal")
 
 
-# Build a DiscreteSignal from selected sample values.
+# Arguments: start_time/end_time are integers; samples maps time indices to values.
+# Returns: DiscreteSignal over the full range, with unspecified samples left as 0.
+# Example: signal_from_samples(0, 3, {0: 1, 2: 5}) creates values [1, 0, 5, 0].
 def signal_from_samples(start_time, end_time, samples):
     raise NotImplementedError("Complete signal_from_samples")
 
 
-# Return the identity impulse response: h[0] = 1.
+# Arguments: none.
+# Returns: DiscreteSignal for the identity impulse response h[0] = 1.
+# Example: impulse_identity() creates a signal over 0..0 with value 1.
 def impulse_identity():
     raise NotImplementedError("Complete impulse_identity")
 
 
-# Return moving-average h[n] = 1/length for n = 0,...,length-1.
+# Arguments: length is a positive integer number of averaging samples.
+# Returns: DiscreteSignal h[n] = 1/length for n = 0, ..., length - 1.
+# Example: impulse_moving_average(3) returns h[0] = h[1] = h[2] = 1/3.
 def impulse_moving_average(length):
     raise NotImplementedError("Complete impulse_moving_average")
 
@@ -48,12 +56,16 @@ def impulse_moving_average_7():
     return impulse_moving_average(7)
 
 
-# Return weighted smoothing: h[0] = 0.5, h[1] = 0.3, h[2] = 0.2.
+# Arguments: none.
+# Returns: DiscreteSignal for weighted smoothing: h[0] = 0.5, h[1] = 0.3, h[2] = 0.2.
+# Example: this system computes 0.5x[n] + 0.3x[n - 1] + 0.2x[n - 2].
 def impulse_weighted_smoothing():
     raise NotImplementedError("Complete impulse_weighted_smoothing")
 
 
-# Return first difference: h[0] = 1, h[1] = -1.
+# Arguments: none.
+# Returns: DiscreteSignal for the first-difference impulse h[0] = 1, h[1] = -1.
+# Example: this system computes y[n] = x[n] - x[n - 1].
 def impulse_first_difference():
     raise NotImplementedError("Complete impulse_first_difference")
 
@@ -126,7 +138,9 @@ def print_signal(signal, name):
     return "\n".join(lines)
 
 
-# Return the maximum absolute sample difference between two signals.
+# Arguments: first_signal and second_signal are DiscreteSignal objects.
+# Returns: float, the largest absolute difference over their combined time range.
+# Example: if the only mismatch is 0.25 at n = 2, return 0.25.
 def max_absolute_difference(first_signal, second_signal):
     raise NotImplementedError("Complete max_absolute_difference")
 
