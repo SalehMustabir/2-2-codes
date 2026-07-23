@@ -145,7 +145,7 @@ class Application {
 
 // ==================== Main ====================
 
-public class Main {
+public class Abstract_Factory {
 
     public static void main(String[] args) {
 
