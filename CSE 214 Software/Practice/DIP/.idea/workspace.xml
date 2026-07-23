@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b8a03cbd-a03b-4a06-83cf-313ba28c8540" name="Changes" comment="DIP">
+      <change afterPath="$PROJECT_DIR$/../.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/prac.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/src/ElectricalPowerSwitch.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/src/Fan.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/src/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/src/Switch.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/src/Switchable.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../prac/src/read.md" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;SalehMustabir&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/salehmustabir/2-2-codes.git&quot;,
+    &quot;accountId&quot;: &quot;f71fe4ee-8bc2-4e50-823f-e5cb450f6ccb&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="3FrAzrbYLowMd3Kbf2Dtqj9Tz25" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;F:/CSE/2 - 2/Code/CSE 214 Software/Practice/prac/src/Main.java&quot;
+  }
+}</component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b8a03cbd-a03b-4a06-83cf-313ba28c8540" name="Changes" comment="" />
+      <created>1782823081188</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1782823081188</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Practice Folder">
+      <option name="closed" value="true" />
+      <created>1782823177412</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1782823177412</updated>
+    </task>
+    <task id="LOCAL-00002" summary="DIP">
+      <option name="closed" value="true" />
+      <created>1782840420502</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1782840420502</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Renamed all as CSE 000" />
+    <MESSAGE value="Practice Folder" />
+    <MESSAGE value="DIP" />
+    <option name="LAST_COMMIT_MESSAGE" value="DIP" />
+  </component>
+</project>
