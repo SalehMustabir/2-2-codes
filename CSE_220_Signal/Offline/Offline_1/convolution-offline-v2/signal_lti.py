@@ -103,6 +103,7 @@ class DiscreteSignal:
             value = self.get_value_at_time(t)
             if abs(value) > tolerance:
                 nonzero_list.append((t, value))
+        return nonzero_list                
         raise NotImplementedError("Complete nonzero_samples")
 
     def plot(self, title, save_path=None, ax=None):
@@ -138,8 +139,9 @@ class LTISystem:
     # Output: None; store the impulse response that defines this LTI system.
     # Example: LTISystem(impulse_identity()) creates the identity system.
     def __init__(self, impulse_response):
-        self.impulse_response = impulse_response    
-        raise NotImplementedError("Complete the LTISystem constructor")
+        self.impulse_response = impulse_response   
+
+        #raise NotImplementedError("Complete the LTISystem constructor")
 
     # Arguments: input_signal is a DiscreteSignal representing x[n].
     # Returns: (start, end) tuple for the convolution output y[n].
