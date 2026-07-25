@@ -173,8 +173,8 @@ Verification
 Output range: [0, 79]
 Maximum absolute difference between two methods: 0
 
-Stem plot: outputs/4clear\plot\builtin_1_identity.png
-Color plot: outputs/4clear\color\builtin_1_identity.png
+Stem plot: outputs/4\plot\builtin_1_identity.png
+Color plot: outputs/4\color\builtin_1_identity.png
 
 Impulse response: 3-point moving average
 ========================================
@@ -353,8 +353,8 @@ Verification
 Output range: [0, 81]
 Maximum absolute difference between two methods: 0
 
-Stem plot: outputs/4clear\plot\builtin_2_moving_average_3.png
-Color plot: outputs/4clear\color\builtin_2_moving_average_3.png
+Stem plot: outputs/4\plot\builtin_2_moving_average_3.png
+Color plot: outputs/4\color\builtin_2_moving_average_3.png
 
 Impulse response: 5-point moving average
 ========================================
@@ -537,8 +537,8 @@ Verification
 Output range: [0, 83]
 Maximum absolute difference between two methods: 0
 
-Stem plot: outputs/4clear\plot\builtin_3_moving_average_5.png
-Color plot: outputs/4clear\color\builtin_3_moving_average_5.png
+Stem plot: outputs/4\plot\builtin_3_moving_average_5.png
+Color plot: outputs/4\color\builtin_3_moving_average_5.png
 
 Impulse response: 7-point moving average
 ========================================
@@ -725,8 +725,8 @@ Verification
 Output range: [0, 85]
 Maximum absolute difference between two methods: 0
 
-Stem plot: outputs/4clear\plot\builtin_4_moving_average_7.png
-Color plot: outputs/4clear\color\builtin_4_moving_average_7.png
+Stem plot: outputs/4\plot\builtin_4_moving_average_7.png
+Color plot: outputs/4\color\builtin_4_moving_average_7.png
 
 Impulse response: weighted smoothing: 0.5x[n] + 0.3x[n-1] + 0.2x[n-2]
 =====================================================================
@@ -905,8 +905,8 @@ Verification
 Output range: [0, 81]
 Maximum absolute difference between two methods: 0
 
-Stem plot: outputs/4clear\plot\builtin_5_weighted_smoothing.png
-Color plot: outputs/4clear\color\builtin_5_weighted_smoothing.png
+Stem plot: outputs/4\plot\builtin_5_weighted_smoothing.png
+Color plot: outputs/4\color\builtin_5_weighted_smoothing.png
 
 Impulse response: first difference: x[n] - x[n-1]
 =================================================
@@ -1083,5 +1083,5 @@ Verification
 Output range: [0, 80]
 Maximum absolute difference between two methods: 0
 
-Stem plot: outputs/4clear\plot\builtin_6_first_difference.png
-Color plot: outputs/4clear\color\builtin_6_first_difference.png
+Stem plot: outputs/4\plot\builtin_6_first_difference.png
+Color plot: outputs/4\color\builtin_6_first_difference.png
