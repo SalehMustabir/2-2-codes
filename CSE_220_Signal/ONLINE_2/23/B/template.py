@@ -13,11 +13,11 @@ Compare results only on OBSERVATION_START...OBSERVATION_END.
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+import signal_lti as lti
 
 def make_signal(start_time, end_time, values):
     """Helper: build a DiscreteSignal from a list of values."""
-    signal = DiscreteSignal(start_time, end_time)
+    signal = lti.DiscreteSignal(start_time, end_time)
     for offset, value in enumerate(values):
         signal.set_value_at_time(start_time + offset, value)
     return signal
@@ -26,7 +26,18 @@ def make_signal(start_time, end_time, values):
 def max_absolute_difference_in_range(first_signal, second_signal, start_time, end_time):
     """Largest |first[n] - second[n]| for start_time <= n <= end_time."""
     # TODO: compute and return the maximum absolute difference on this range.
-    raise NotImplementedError
+    maximum = 0.0
+
+    for n in range(start_time, end_time + 1):
+        diff = abs(
+            first_signal.get_value_at_time(n)
+            - second_signal.get_value_at_time(n)
+        )
+
+        if diff > maximum:
+            maximum = diff
+
+    return maximum 
 
 
 def samples_in_range(signal, start_time, end_time):
@@ -43,6 +54,9 @@ def cascade(first_system, second_system, input_signal):
     # intermediate_output = first_system.output(...)
     # final_output = second_system.output(...)
     # return intermediate_output, final_output
+    intermediate_output = first_system.output(input_signal)
+    final_output = second_system.output(intermediate_output)
+    return intermediate_output, final_output
     raise NotImplementedError
 
 
@@ -109,15 +123,19 @@ def main():
 
     # TODO: Define impulse responses
     # h1[n] = delta[n] - delta[n-1] = [1, -1]
+    h1 = make_signal(0, 1, [1.0, -1.0])
     # h2[n] = u[n]. Store enough samples for the graded observation window.
+    h2 = make_signal(0, 10, [1.0] * 11)
 
     # TODO: create the two LTISystem objects.
-    differentiator = None
-    accumulator = None
+    differentiator = lti.LTISystem(h1)
+    accumulator = lti.LTISystem(h2)
+    
 
     # TODO: apply x[n] through Accumulator -> First difference.
-    accumulator_output = None
-    difference_output = None
+    # accumulator_output = None
+    # difference_output = None
+    accumulator_output, difference_output = cascade(accumulator, differentiator, x)
 
     # TODO: compare the first-difference response with x[n] on the observation window.
     max_difference = None
@@ -132,13 +150,13 @@ def main():
     print(f"Maximum absolute difference from x[n]: {max_difference}")
 
     # TODO: call the provided plotting helper:
-    # plot_cascade_responses(
-    #     x,
-    #     accumulator_output,
-    #     difference_output,
-    #     OBSERVATION_START,
-    #     OBSERVATION_END,
-    # )
+    plot_cascade_responses(
+        x,
+        accumulator_output,
+        difference_output,
+        OBSERVATION_START, 
+        OBSERVATION_END,
+    )
 
     print()
     conclusion = None
