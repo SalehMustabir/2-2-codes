@@ -464,7 +464,7 @@ public class SmartHomeSpaghettiDemo {
         // So we add MORE flags to Room. Copy-paste from device logic.
         boolean roomLocked = true;
         int roomPin = 0;
-        boolean roomTimerControlled = true;
+        //boolean roomTimerControlled = true;
         int roomTimerSeconds = 3600;
         boolean roomTimerRunning = false;
 
