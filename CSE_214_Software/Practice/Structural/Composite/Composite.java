@@ -91,7 +91,7 @@ class Menu implements CompositeMenu {
     }
 }
 
-public class MenuTestDrive {
+public class Composite {
     public static void main(String[] args) {
         // We MUST declare these as CompositeMenu so the compiler lets us use .add()
         CompositeMenu pancakeHouseMenu = new Menu("PANCAKE HOUSE MENU", "Breakfast");
@@ -115,6 +115,10 @@ public class MenuTestDrive {
         // Error handling payoff:
         MenuItem myHotDog = new MenuItem("Hot Dog", "Plain", 2.00);
         // myHotDog.add(dinerMenu); // <-- COMPILER ERROR! Safety achieved.
+
+        System.out.println("===================");
+        MenuComponent it =  allMenus.getChild(0);
+        it.print();
 
     }
 } 

@@ -84,7 +84,7 @@ class Whip extends CondimentDecorator
     }
 }
 
-public class Coffee {
+public class Decorator {
     public static void main(String[] args) {
         System.out.println("Hello, World!");
         Beverage espresso = new Espresso();
