@@ -36,7 +36,14 @@ class FourierEpicycles:
                            been called
         """
         # TODO: implement this method
-        raise NotImplementedError("Implement __init__")
+        self.t = t
+        self.signal = signal
+        self.N = n_harmonics
+        self.T = t[-1]  # Assuming t[-1] is the period T
+        self.omega = 2 * np.pi / self.T
+        self.coeffs = {}
+
+        # raise NotImplementedError("Implement __init__")
 
     def calculate_cn(self, n):
         """
@@ -49,7 +56,11 @@ class FourierEpicycles:
         n may be zero, positive, or negative.
         """
         # TODO: implement this method
-        raise NotImplementedError("Implement calculate_cn")
+        exp_term = np.exp(-1j * n * self.omega * self.t)
+        integrand = self.signal * exp_term
+        c_n = (1 / self.T) * np.trapezoid(integrand, self.t)
+        return c_n
+        #raise NotImplementedError("Implement calculate_cn")
 
     def calculate_all_coefficients(self):
         """
@@ -57,7 +68,9 @@ class FourierEpicycles:
         n = -N, ..., -1, 0, 1, ..., N by repeatedly calling calculate_cn(n).
         """
         # TODO: implement this method
-        raise NotImplementedError("Implement calculate_all_coefficients")
+        for n in range(-self.N, self.N + 1):
+            self.coeffs[n] = self.calculate_cn(n)
+        # raise NotImplementedError("Implement calculate_all_coefficients")
 
     def approximate(self, t):
         """
@@ -71,7 +84,12 @@ class FourierEpicycles:
         plotting/animation code calls this both ways.
         """
         # TODO: implement this method
-        raise NotImplementedError("Implement approximate")
+        t_array = np.asarray(t)  # Ensure t is a numpy array for vectorized operations
+        f_hat = np.zeros_like(t_array, dtype=complex)  # Initialize the approximation
+        for n, c_n in self.coeffs.items():
+            f_hat += c_n * np.exp(1j * n * self.omega * t_array)
+        return f_hat
+        #raise NotImplementedError("Implement approximate")
 
 
 if __name__ == "__main__":

@@ -68,7 +68,39 @@ class CFT2D:
         real, imag : two 2D numpy arrays, each of shape self.I.shape
         """
         # TODO: implement this method
-        raise NotImplementedError("Implement CFT2D.compute_cft")
+        rows, cols = self.I.shape
+        C_x = np.zeros((rows, cols))
+        S_x = np.zeros((rows, cols))
+        for j in range(cols):
+            u_values = self.u[j]
+            angle_ux = 2 * np.pi * u_values * self.x
+            cos_ux = np.cos(angle_ux)
+            sin_ux = np.sin(angle_ux)
+
+            C_x[:, j] = np.trapezoid(self.I * cos_ux, self.x, axis=1)
+            S_x[:, j] = np.trapezoid(self.I * sin_ux, self.x, axis=1)
+
+        real = np.zeros((rows, cols))
+        imag = np.zeros((rows, cols))
+
+        for k in range(rows):
+            v_values = self.v[k]
+            angle_vy = 2 * np.pi * v_values * self.y
+            cos_vy = np.cos(angle_vy)[:, np.newaxis]
+            sin_vy = np.sin(angle_vy)[:, np.newaxis]
+
+            int_C_cos = np.trapezoid(C_x * cos_vy, self.y, axis=0)
+            int_S_sin = np.trapezoid(S_x * sin_vy, self.y, axis=0)
+            int_C_sin = np.trapezoid(C_x * sin_vy, self.y, axis=0)
+            int_S_cos = np.trapezoid(S_x * cos_vy, self.y, axis=0)
+
+            real[k, :] = int_C_cos - int_S_sin
+            imag[k, :] = - (int_C_sin + int_S_cos)
+
+        self.real = real
+        self.imag = imag
+        return real, imag
+        #raise NotImplementedError("Implement CFT2D.compute_cft")
 
     def plot_magnitude(self):
         """
@@ -78,7 +110,13 @@ class CFT2D:
         debugging -- not called by the command-line entry point below.
         """
         # TODO: implement this method
-        raise NotImplementedError("Implement CFT2D.plot_magnitude")
+        magnitude = np.sqrt(self.real**2 + self.imag**2)
+        log_magnitude = np.log(1 + magnitude)
+        plt.imshow(log_magnitude, cmap='gray')
+        plt.title("Log-scaled CFT Magnititude")
+        plt.axis('off')
+        plt.show()
+        #raise NotImplementedError("Implement CFT2D.plot_magnitude")
 
 
 class FrequencyFilter:
@@ -137,7 +175,38 @@ class InverseCFT2D:
             for how it gets turned into a displayable edge map.
         """
         # TODO: implement this method
-        raise NotImplementedError("Implement InverseCFT2D.reconstruct")
+        rows, cols = self.real.shape
+        C_v = np.zeros((rows, cols))
+        S_v = np.zeros((rows, cols))
+
+        for i in range(rows):
+            y_val = self.y[i]
+            angle_vy = 2 * np.pi * self.v * y_val
+            cos_vy = np.cos(angle_vy)[:, np.newaxis]
+            sin_vy = np.sin(angle_vy)[:, np.newaxis]
+
+            term1 = self.real * cos_vy - self.imag * sin_vy
+            term2 = self.real * sin_vy + self.imag * cos_vy
+
+            C_v[i, :] = np.trapezoid(term1, self.v, axis=0)
+            S_v[i, :] = np.trapezoid(term2, self.v, axis=0)
+
+        image = np.zeros((rows, cols))
+
+
+        for j in range(cols):
+            x_val = self.x[j]
+
+            angle_ux = 2 * np.pi * self.u * x_val
+            cos_ux = np.cos(angle_ux)[np.newaxis, :]
+            sin_ux = np.sin(angle_ux)[np.newaxis, :]
+
+            integrand = C_v * cos_ux - S_v * sin_ux
+
+            image[:, j] = np.trapezoid(integrand, self.u, axis=1)
+        return image
+        
+        #raise NotImplementedError("Implement InverseCFT2D.reconstruct")
 
 
 # =====================================================
