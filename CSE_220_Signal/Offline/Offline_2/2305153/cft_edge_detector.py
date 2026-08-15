@@ -26,15 +26,15 @@ class CFT2D:
     using separable numerical (trapezoidal) integration."""
 
     def __init__(self, image_obj: ContinuousImage):
-        self.I = image_obj.image # The image data
-        self.x = image_obj.x # The continuous x-coordinates
-        self.y = image_obj.y # The continuous y-coordinates
+        self.I = image_obj.image
+        self.x = image_obj.x
+        self.y = image_obj.y
 
         # Frequency axes conjugate to x and y (given), spanning the full
         # Nyquist range implied by the sample spacing (dx, dy). This is
         # what lets the transform represent fine, edge-scale spatial
         # detail instead of only very coarse (near-DC) variation.
-        dx = self.x[1] - self.x[0] #
+        dx = self.x[1] - self.x[0]
         dy = self.y[1] - self.y[0]
         self.u = np.linspace(-1 / (2 * dx), 1 / (2 * dx), self.I.shape[1])
         self.v = np.linspace(-1 / (2 * dy), 1 / (2 * dy), self.I.shape[0])
