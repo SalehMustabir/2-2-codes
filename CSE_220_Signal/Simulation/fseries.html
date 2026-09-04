@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Fourier Series (ck) Animation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 40px;
+        }
+        canvas {
+            background-color: #181825;
+            border: 2px solid #45475a;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .description {
+            max-width: 800px;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        code {
+            background-color: #313244;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Complex Plane: f(t) = c₀ + c₁e^{jω₀t} + c₋₁e^{-jω₀t} + c₂e^{j2ω₀t} + c₋₂e^{-j2ω₀t}</h2>
+    <canvas id="fourierCanvas" width="900" height="400"></canvas>
+    
+    <div class="description">
+        <p><strong>What you are seeing:</strong></p>
+        <ul>
+            <li><strong>The Complex Plane (Left):</strong> The Real axis points UP, and the Imaginary axis points RIGHT.</li>
+            <li><strong>Conjugate Pairs:</strong> You can see vectors rotating in opposite directions. Because $f(t)$ is a real signal, the side-to-side (imaginary) movements constantly cancel each other out.</li>
+            <li><strong>The Final Tip:</strong> Notice how the very last point <em>only</em> moves straight up and down on the Real axis. It never strays into the imaginary space!</li>
+        </ul>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('fourierCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let time = 0;
+        let wave = [];
+        
+        // Scale and positioning
+        const scale = 70; // 70 pixels = 1 unit
+        const complexOriginX = 200; // Center of complex plane
+        const complexOriginY = 250; // Center of complex plane
+        const graphStartX = 450;    // Where the time-domain graph starts
+
+        // The c_k coefficients array
+        const terms = [
+            { amp: 1,    freq: 0,  color: "#f38ba8", label: "c0" },
+            { amp: 0.4,  freq: 1,  color: "#89b4fa", label: "c1" },
+            { amp: 0.4,  freq: -1, color: "#89b4fa", label: "c-1" },
+            { amp: 0.25, freq: 2,  color: "#a6e3a1", label: "c2" },
+            { amp: 0.25, freq: -2, color: "#a6e3a1", label: "c-2" }
+        ];
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Complex Plane Axes
+            ctx.beginPath();
+            ctx.moveTo(complexOriginX, 50);
+            ctx.lineTo(complexOriginX, 350); // Real Axis (Y-axis on canvas)
+            ctx.moveTo(50, complexOriginY);
+            ctx.lineTo(350, complexOriginY); // Imaginary Axis (X-axis on canvas)
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.stroke();
+
+            // Label Axes
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.font = "12px Arial";
+            ctx.fillText("Real (+)", complexOriginX - 45, 60);
+            ctx.fillText("Imag (+)", 300, complexOriginY - 10);
+
+            // Draw Graph Axis
+            ctx.beginPath();
+            ctx.moveTo(graphStartX, complexOriginY);
+            ctx.lineTo(canvas.width, complexOriginY);
+            ctx.stroke();
+
+            let x = complexOriginX;
+            let y = complexOriginY;
+
+            // Calculate complex vectors end-to-end
+            for (let i = 0; i < terms.length; i++) {
+                let prevX = x;
+                let prevY = y;
+
+                let radius = terms[i].amp * scale;
+                let angle = terms[i].freq * time;
+
+                // Rotating complex plane by 90 degrees to map Real to UP and Imag to RIGHT.
+                // e^(j*theta) = cos(theta) + j*sin(theta)
+                // Real (cos) maps to -Y (up). Imag (sin) maps to +X (right).
+                x += radius * Math.sin(angle);
+                y -= radius * Math.cos(angle);
+
+                // Draw the circular path (skip for DC component c0)
+                if (terms[i].freq !== 0) {
+                    ctx.beginPath();
+                    ctx.arc(prevX, prevY, radius, 0, 2 * Math.PI);
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+                    ctx.stroke();
+                }
+
+                // Draw the rotating arm (phasor)
+                ctx.beginPath();
+                ctx.moveTo(prevX, prevY);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = terms[i].color;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.lineWidth = 1;
+
+                // Draw joints
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+            }
+
+            // Store the final Y coordinate (Real component sum) to draw the wave
+            wave.unshift(y);
+            if (wave.length > 500) wave.pop();
+
+            // Draw dashed line projecting from complex plane to time graph
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(graphStartX, y);
+            ctx.strokeStyle = "rgba(243, 139, 168, 0.6)";
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw tracing tip
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = "#f38ba8";
+            ctx.fill();
+
+            // Trace out the resulting time wave
+            ctx.beginPath();
+            for (let i = 0; i < wave.length; i++) {
+                ctx.lineTo(graphStartX + i, wave[i]);
+            }
+            ctx.strokeStyle = "#f38ba8";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.lineWidth = 1;
+
+            // Increment time (angular velocity)
+            time += 0.02;
+            requestAnimationFrame(draw);
+        }
+
+        // Start animation
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Series Winding Tracker</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .canvas-wrapper {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 830px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .tracker-group {
+            grid-column: 1 / -1;
+            background: #eef2f5;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #d93838;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        .value-display {
+            font-weight: normal;
+            color: #0066cc;
+        }
+        .stats {
+            grid-column: 1 / -1;
+            background: #eef2f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+        }
+        button {
+            grid-column: 1 / -1;
+            padding: 12px;
+            background-color: #d93838;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #b52b2b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="canvas-wrapper">
+            <h3>Original Signal x(t)</h3>
+            <canvas id="timeCanvas" width="400" height="400"></canvas>
+        </div>
+        <div class="canvas-wrapper">
+            <h3>Wound Signal & Center of Mass</h3>
+            <canvas id="complexCanvas" width="400" height="400"></canvas>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group tracker-group">
+            <label>Time Tracker (t): <span id="t_time_val" class="value-display">1.00</span></label>
+            <input type="range" id="t_time" min="0" max="1" step="0.005" value="1">
+        </div>
+        <div class="control-group">
+            <label>Winding Frequency (k): <span id="k_val" class="value-display">1.00</span></label>
+            <input type="range" id="k" min="0" max="5" step="0.01" value="1">
+        </div>
+        <div class="control-group">
+            <label>DC Offset (Constant): <span id="c0_val" class="value-display">1.0</span></label>
+            <input type="range" id="c0" min="-1" max="2" step="0.1" value="1">
+        </div>
+        <div class="control-group">
+            <label>Cos(ω₀t) Amplitude: <span id="c1_val" class="value-display">0.8</span></label>
+            <input type="range" id="c1" min="0" max="2" step="0.1" value="0.8">
+        </div>
+        <div class="control-group">
+            <label>Cos(2ω₀t) Amplitude: <span id="c2_val" class="value-display">0.5</span></label>
+            <input type="range" id="c2" min="0" max="2" step="0.1" value="0.5">
+        </div>
+        
+        <div class="stats" id="centroid_display">Accumulating Centroid (c_k): 0.00 + 0.00j</div>
+        
+        <button id="animateBtn">Start Time Tracker Animation</button>
+    </div>
+
+    <script>
+        const timeCanvas = document.getElementById('timeCanvas');
+        const timeCtx = timeCanvas.getContext('2d');
+        const complexCanvas = document.getElementById('complexCanvas');
+        const complexCtx = complexCanvas.getContext('2d');
+
+        const inputs = ['k', 'c0', 'c1', 'c2', 't_time'];
+        const params = {};
+
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            const valEl = document.getElementById(id + '_val');
+            el.addEventListener('input', () => {
+                valEl.innerText = parseFloat(el.value).toFixed(2);
+                draw();
+            });
+        });
+
+        function getParams() {
+            inputs.forEach(id => {
+                params[id] = parseFloat(document.getElementById(id).value);
+            });
+        }
+
+        let isAnimating = false;
+        let animationFrame;
+
+        document.getElementById('animateBtn').addEventListener('click', (e) => {
+            isAnimating = !isAnimating;
+            e.target.innerText = isAnimating ? "Stop Tracker" : "Start Time Tracker Animation";
+            if (isAnimating) {
+                // If already at end, reset to 0 before animating
+                if(parseFloat(document.getElementById('t_time').value) >= 1) {
+                    document.getElementById('t_time').value = 0;
+                }
+                animateTime();
+            } else {
+                cancelAnimationFrame(animationFrame);
+            }
+        });
+
+        function animateTime() {
+            let tSlider = document.getElementById('t_time');
+            let currentT = parseFloat(tSlider.value);
+            currentT += 0.005; // Animation speed
+            
+            if (currentT >= 1) {
+                currentT = 1;
+                isAnimating = false;
+                document.getElementById('animateBtn').innerText = "Start Time Tracker Animation";
+            }
+            
+            tSlider.value = currentT;
+            document.getElementById('t_time_val').innerText = currentT.toFixed(2);
+            
+            draw();
+            
+            if(isAnimating) {
+                animationFrame = requestAnimationFrame(animateTime);
+            }
+        }
+
+        function drawGrid(ctx, width, height, scale, originX, originY) {
+            ctx.strokeStyle = "#e5e5e5";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let x = originX % scale; x < width; x += scale) {
+                ctx.moveTo(x, 0); ctx.lineTo(x, height);
+            }
+            for(let y = originY % scale; y < height; y += scale) {
+                ctx.moveTo(0, y); ctx.lineTo(width, y);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = "#999";
+            ctx.beginPath();
+            ctx.moveTo(0, originY); ctx.lineTo(width, originY); 
+            ctx.moveTo(originX, 0); ctx.lineTo(originX, height); 
+            ctx.stroke();
+        }
+
+        function draw() {
+            getParams();
+            const N = 1000; 
+            const dt = 1 / N; 
+            const w0 = 2 * Math.PI; 
+            
+            // Determine how many points to draw based on time tracker
+            const currentPoints = Math.max(1, Math.floor(params.t_time * N));
+
+            const t_vals = [];
+            const x_vals = [];
+            const complex_x = [];
+            const complex_y = [];
+
+            let sum_real = 0;
+            let sum_imag = 0;
+            
+            // Calculate all points for the faint background path
+            for (let i = 0; i < N; i++) {
+                let t = i * dt;
+                t_vals.push(t);
+                let xt = params.c0 + params.c1 * Math.cos(w0 * t) + params.c2 * Math.cos(2 * w0 * t);
+                x_vals.push(xt);
+
+                let angle = params.k * w0 * t;
+                let real_part = xt * Math.cos(angle);
+                let imag_part = xt * -Math.sin(angle); 
+
+                complex_x.push(real_part);
+                complex_y.push(imag_part);
+
+                // Accumulate integral only up to current time tracker position
+                if (i < currentPoints) {
+                    sum_real += real_part;
+                    sum_imag += imag_part;
+                }
+            }
+
+            // Center of mass integral divided by Total Period (N) 
+            // This shows the vector literally growing as it sums up the area
+            let centroid_real = sum_real / N;
+            let centroid_imag = sum_imag / N;
+            
+            document.getElementById('centroid_display').innerText = 
+                `Accumulating Centroid (c_k): ${centroid_real.toFixed(3)} ${centroid_imag >= 0 ? '+' : '-'} ${Math.abs(centroid_imag).toFixed(3)}j`;
+
+            renderTimeDomain(t_vals, x_vals, currentPoints);
+            renderComplexDomain(complex_x, complex_y, currentPoints, centroid_real, centroid_imag);
+        }
+
+        function renderTimeDomain(t_vals, x_vals, currentPoints) {
+            const width = timeCanvas.width;
+            const height = timeCanvas.height;
+            timeCtx.clearRect(0, 0, width, height);
+
+            const originX = 20;
+            const originY = height - 50; 
+            const scaleX = width - 40; 
+            const scaleY = 100; 
+
+            drawGrid(timeCtx, width, height, 50, originX, originY);
+
+            // 1. Draw Faint Full Signal
+            timeCtx.strokeStyle = 'rgba(74, 105, 132, 0.2)';
+            timeCtx.lineWidth = 2.5;
+            timeCtx.beginPath();
+            for (let i = 0; i < t_vals.length; i++) {
+                let px = originX + t_vals[i] * scaleX;
+                let py = originY - x_vals[i] * scaleY;
+                if (i === 0) timeCtx.moveTo(px, py);
+                else timeCtx.lineTo(px, py);
+            }
+            timeCtx.stroke();
+
+            // 2. Draw Solid Tracked Signal
+            timeCtx.strokeStyle = '#4A6984';
+            timeCtx.lineWidth = 3;
+            timeCtx.beginPath();
+            for (let i = 0; i < currentPoints; i++) {
+                let px = originX + t_vals[i] * scaleX;
+                let py = originY - x_vals[i] * scaleY;
+                if (i === 0) timeCtx.moveTo(px, py);
+                else timeCtx.lineTo(px, py);
+            }
+            timeCtx.stroke();
+
+            // 3. Draw Tracker Position
+            let track_px = originX + t_vals[currentPoints - 1] * scaleX;
+            let track_py = originY - x_vals[currentPoints - 1] * scaleY;
+
+            // Vertical scan line
+            timeCtx.strokeStyle = 'rgba(217, 56, 56, 0.5)';
+            timeCtx.lineWidth = 2;
+            timeCtx.setLineDash([5, 5]);
+            timeCtx.beginPath();
+            timeCtx.moveTo(track_px, 0);
+            timeCtx.lineTo(track_px, height);
+            timeCtx.stroke();
+            timeCtx.setLineDash([]); // reset
+
+            // Moving dot
+            timeCtx.fillStyle = '#d93838';
+            timeCtx.beginPath();
+            timeCtx.arc(track_px, track_py, 6, 0, 2 * Math.PI);
+            timeCtx.fill();
+        }
+
+        function renderComplexDomain(comp_x, comp_y, currentPoints, c_real, c_imag) {
+            const width = complexCanvas.width;
+            const height = complexCanvas.height;
+            complexCtx.clearRect(0, 0, width, height);
+
+            const originX = width / 2;
+            const originY = height / 2;
+            const scale = 80; 
+
+            drawGrid(complexCtx, width, height, scale, originX, originY);
+
+            // 1. Draw Faint Full Wound Wire
+            complexCtx.strokeStyle = 'rgba(74, 105, 132, 0.15)';
+            complexCtx.lineWidth = 2;
+            complexCtx.beginPath();
+            for (let i = 0; i < comp_x.length; i++) {
+                let px = originX + comp_x[i] * scale;
+                let py = originY - comp_y[i] * scale; 
+                if (i === 0) complexCtx.moveTo(px, py);
+                else complexCtx.lineTo(px, py);
+            }
+            complexCtx.stroke();
+
+            // 2. Draw Solid Tracked Wound Wire
+            complexCtx.strokeStyle = '#4A6984';
+            complexCtx.lineWidth = 2.5;
+            complexCtx.beginPath();
+            for (let i = 0; i < currentPoints; i++) {
+                let px = originX + comp_x[i] * scale;
+                let py = originY - comp_y[i] * scale; 
+                if (i === 0) complexCtx.moveTo(px, py);
+                else complexCtx.lineTo(px, py);
+            }
+            complexCtx.stroke();
+
+            // 3. Draw Tracker Dot at the tip of the wire
+            let tip_x = originX + comp_x[currentPoints - 1] * scale;
+            let tip_y = originY - comp_y[currentPoints - 1] * scale;
+            
+            complexCtx.fillStyle = '#4A6984';
+            complexCtx.beginPath();
+            complexCtx.arc(tip_x, tip_y, 5, 0, 2 * Math.PI);
+            complexCtx.fill();
+
+            // 4. Draw Accumulating Center of Mass
+            let cx = originX + c_real * scale;
+            let cy = originY - c_imag * scale;
+            
+            complexCtx.strokeStyle = 'rgba(217, 56, 56, 0.8)';
+            complexCtx.lineWidth = 2;
+            complexCtx.beginPath();
+            complexCtx.moveTo(originX, originY);
+            complexCtx.lineTo(cx, cy);
+            complexCtx.stroke();
+
+            complexCtx.fillStyle = '#d93838';
+            complexCtx.beginPath();
+            complexCtx.arc(cx, cy, 6, 0, 2 * Math.PI);
+            complexCtx.fill();
+        }
+
+        draw();
+    </script>
+</body>
+</html>

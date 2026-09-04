@@ -217,7 +217,7 @@ class BDAlertSystem implements Subject {
     }
 }
 
-public class ObserverPattern {
+public class task1_2305153 {
     public static void main(String[] args) {
         System.out.println("====================================");
         System.out.println("       BD ALERT SYSTEM STARTED       ");
