@@ -29,18 +29,31 @@ def choose_transform_shape(image_shape, kernel_shape, engine):
     # TODO 1 (student): find the full convolution size and account for the
     # radix-2 engine's power-of-two restriction.
 
+    # Image dimensions
+    image_height, image_width = image_shape
+
+    # Kernel dimensions
+    kernel_height, kernel_width = kernel_shape
+
     # Use the linear-convolution padding rule from the offline to compute the
     # minimum required height and width without circular wraparound.
     # full_height =
     # full_width =
+    full_height = image_height + kernel_height - 1
+    full_width = image_width + kernel_width - 1
 
     if engine.name == "fft":
         # Adjust both dimensions to lengths supported by the radix-2 engine.
         # return
+        return (
+            next_power_of_two(full_height),
+            next_power_of_two(full_width)
+        )
         raise NotImplementedError("TODO 1: radix-2 transform shape")
 
     # Other engines can use the minimum dimensions calculated above.
     # return
+    return full_height, full_width
     raise NotImplementedError("TODO 1: linear-convolution transform shape")
 
 
@@ -81,11 +94,18 @@ def hybrid_plane(low_plane, high_plane, kernel, engine):
     # Combine the available spectra so that low_plane supplies the smooth
     # component and high_plane supplies the complementary detail component.
     # combined =
+    combined = (
+        low_spectrum * kernel_spectrum
+        + high_spectrum * (delta_spectrum - kernel_spectrum)
+    )
 
     # Transform the combined spectrum back and discard numerical imaginary
     # roundoff, as done in the original image-convolution pipeline.
     # full =
-    raise NotImplementedError("TODO 2: combine spectra and invert")
+    full = inverse_2d(combined, engine).real
+    row = kernel.shape[0] // 2
+    column = kernel.shape[1] // 2
+    #raise NotImplementedError("TODO 2: combine spectra and invert")
     row, column = kernel.shape[0] // 2, kernel.shape[1] // 2
     return full[row:row + low_plane.shape[0],
                 column:column + low_plane.shape[1]]
@@ -100,6 +120,7 @@ def hybrid_image(low_image, high_image, kernel, engine):
     if low_image.shape != high_image.shape:
         raise ValueError("the two images must have the same shape")
     if low_image.ndim == 2:
+        return hybrid_plane(low_image, high_image, kernel, engine)
         # A grayscale image contains one plane; process that pair directly.
         # return
         raise NotImplementedError("TODO 3: process a grayscale image")
@@ -108,6 +129,13 @@ def hybrid_image(low_image, high_image, kernel, engine):
         # colour image from the three resulting planes.
         # planes =
         # return
+        planes = []
+        for channel in range(3):
+            low_plane = low_image[:, :, channel]
+            high_plane = high_image[:, :, channel]
+            hybrid_plane_result = hybrid_plane(low_plane, high_plane, kernel, engine)
+            planes.append(hybrid_plane_result)
+        return np.stack(planes, axis=2)
         raise NotImplementedError("TODO 3: process an RGB image")
     raise ValueError("images must be grayscale or RGB")
 
