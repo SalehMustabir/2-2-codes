@@ -200,10 +200,10 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
 \vspace{-0.05cm}
 \centering
 \begin{tikzpicture}[x=0.58cm,y=0.85cm]
-\path[use as bounding box] (-2.4,-2.3) rectangle (16.6,3.1);
+\path[use as bounding box] (-2.4,-1.6) rectangle (16.6,3.5);
 
 \only<1-9>{
-\node[anchor=west,font=\scriptsize] at (-2.3,2.6)
+\node[anchor=west,font=\scriptsize] at (-2.3,3.0)
   {\colorbox{yellow!20}{\phantom{x}}\,inherited \quad
    \colorbox{green!22}{\phantom{x}}\,match \quad
    \colorbox{red!18}{\phantom{x}}\,mismatch};
@@ -213,7 +213,6 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
 \foreach \letter [count=\p from 0] in {a,a,b,a,a,c,a,a,d,a,a,b,a,a,b,a} {
   \draw (\p,0) rectangle (\p+1,0.6);
   \node[font=\ttfamily\large] at (\p+0.5,0.3) {\letter};
-  \node[font=\scriptsize] at (\p+0.5,-0.28) {\p};
 }
 \only<1-9>{\node[anchor=east] at (-0.3,1.5) {Pattern:};}
 
@@ -229,8 +228,11 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\p from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (\p+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\p from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (\p+0.5,1.0) {\idx};
+  }
   \draw[red!75!black,very thick] (0,1.2) rectangle (4,1.8);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {\textcolor{red!75!black}{\checkmark} $s=0$: all four characters match $\Rightarrow$ pattern found at index~\textbf{0}! Since $LPS[3]=1$, jump straight to $s=3$ --- indices 1 and 2 are skipped entirely.};
 }
 
@@ -245,9 +247,12 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (3+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (3+\i+0.5,1.0) {\idx};
+  }
   \node[red] at (5.5,2.0) {$\times$};
   \draw[red,thick] (5,0) rectangle (6,0.6);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {Index 3 is already known to match (inherited). New comparisons: index 4 matches, but index 5 mismatches ($LPS[1]=1 \Rightarrow$ fall back and retry from $s=4$).};
 }
 
@@ -261,9 +266,12 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (4+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (4+\i+0.5,1.0) {\idx};
+  }
   \node[red] at (5.5,2.0) {$\times$};
   \draw[red,thick] (5,0) rectangle (6,0.6);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {Index 4 is already known to match. New comparison at index 5 mismatches again, now against a different pattern position ($LPS[0]=0 \Rightarrow$ fall back completely, retry from $s=5$).};
 }
 
@@ -276,9 +284,12 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (5+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (5+\i+0.5,1.0) {\idx};
+  }
   \node[red] at (5.5,2.0) {$\times$};
   \draw[red,thick] (5,0) rectangle (6,0.6);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {No inherited characters this time --- index 5 mismatches immediately. Since $j=0$ already, we simply advance $i$ and retry from $s=6$ (just like the naive approach would).};
 }
 
@@ -293,9 +304,12 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (6+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (6+\i+0.5,1.0) {\idx};
+  }
   \node[red] at (8.5,2.0) {$\times$};
   \draw[red,thick] (8,0) rectangle (9,0.6);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {Indices 6 and 7 match, but index 8 ('d') breaks the streak. $LPS[1]=1 \Rightarrow$ fall back and retry from $s=7$.};
 }
 
@@ -309,9 +323,12 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (7+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (7+\i+0.5,1.0) {\idx};
+  }
   \node[red] at (8.5,2.0) {$\times$};
   \draw[red,thick] (8,0) rectangle (9,0.6);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {Index 7 is already known to match. New comparison at index 8 mismatches again ($LPS[0]=0 \Rightarrow$ fall back completely, retry from $s=8$).};
 }
 
@@ -324,9 +341,12 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (8+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (8+\i+0.5,1.0) {\idx};
+  }
   \node[red] at (8.5,2.0) {$\times$};
   \draw[red,thick] (8,0) rectangle (9,0.6);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {Index 8 ('d') mismatches immediately. Since $j=0$ already, advance $i$ and retry from $s=9$.};
 }
 
@@ -338,8 +358,11 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (9+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (9+\i+0.5,1.0) {\idx};
+  }
   \draw[blue!70!black,very thick] (9,1.2) rectangle (13,1.8);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {\textcolor{blue!70!black}{\checkmark} $s=9$: all four characters match $\Rightarrow$ pattern found at index~\textbf{9}! Jump directly to $s=12$ --- indices 10 and 11 are skipped.};
 }
 
@@ -353,13 +376,16 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \foreach \letter [count=\i from 0] in {a,a,b,a} {
     \node[font=\ttfamily\large] at (12+\i+0.5,1.5) {\letter};
   }
+  \foreach \idx [count=\i from 0] in {0,1,2,3} {
+    \node[font=\scriptsize] at (12+\i+0.5,1.0) {\idx};
+  }
   \draw[orange!85!black,very thick] (12,1.2) rectangle (16,1.8);
-  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.25)
     {\textcolor{orange!85!black}{\checkmark} $s=12$: index 12 inherited, indices 13--15 all match $\Rightarrow$ pattern found at index~\textbf{12}! We've reached the end of the text.};
 }
 
 \only<10>{
-  \node[anchor=north,align=center,text width=11cm,font=\normalsize\bfseries] at (7.5,-0.65)
+  \node[anchor=north,align=center,text width=11cm,font=\normalsize\bfseries] at (7.5,-0.25)
     {All three matches found --- exactly as promised in the introduction: indices \textcolor{red!75!black}{0}, \textcolor{blue!70!black}{9}, and \textcolor{orange!85!black}{12}. Total: just 20 character comparisons for a 16-character text.};
 }
 \end{tikzpicture}
