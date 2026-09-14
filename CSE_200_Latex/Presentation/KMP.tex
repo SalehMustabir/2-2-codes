@@ -1,0 +1,945 @@
+\documentclass{beamer}
+
+\usetheme{Madrid}   % Clean and common
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{Knuth-Morris-Pratt (KMP) String Matching}
+\subtitle{CSE 200:Technical Writing and Presentation}
+\author[Group 1]{%
+  Ragib Al-Hasib - 2305152\\
+  Saleh Mustabir Rafi - 2305153\\
+  Abdus Sakur Sifat - 2305154}
+
+\date{\today}
+
+\begin{document}
+
+% =====================================================================
+%  PART 2 -- continues the frame count from Part 1 (Introduction ...
+%  LPS Construction Simulation). Only the frames below are new; the
+%  preamble/title are repeated here only so this file compiles on its
+%  own. When merging into the master deck, copy just the
+%  \begin{frame} ... \end{frame} blocks below (skip the duplicate
+%  preamble and titlepage), and make sure \usepackage{amssymb} is
+%  added once to the shared preamble (needed for \checkmark).
+% =====================================================================
+
+\begin{frame}{From Preprocessing to Searching}
+\noindent{\Large\bfseries Where We Left Off\par}
+\vspace{0.4cm}
+
+\onslide<1->{%
+\begin{itemize}
+  \item The \textbf{LPS array} is built once, in $O(m)$ time
+  \item It tells us: \emph{if a mismatch happens here, how far can we safely skip?}
+\end{itemize}
+}
+
+\vspace{0.6cm}
+
+\onslide<2->{%
+\noindent{\large\bfseries Now: Put LPS to Work\par}
+\begin{itemize}
+  \item Scan the text just \textbf{once}, left to right
+  \item Use LPS to \textbf{avoid re-checking} characters we already know match
+  \item Goal: find every occurrence of the pattern in $O(n+m)$ time
+\end{itemize}
+}
+\end{frame}
+
+\begin{frame}{Two Pointers: The Core Idea}
+\noindent{\Large\bfseries Meet $i$ and $j$\par}
+\vspace{0.3cm}
+
+\onslide<1->{%
+\begin{itemize}
+  \item $i$ walks along the \textbf{text}, from $0$ to $n$
+  \item $j$ walks along the \textbf{pattern}, from $0$ to $m$
+  \item Characters \textbf{match} $\Rightarrow$ advance \textit{both} $i$ and $j$
+  \item Characters \textbf{mismatch} $\Rightarrow$ move \textit{only} $j$, guided by LPS
+\end{itemize}
+}
+
+\vspace{0.7cm}
+
+\onslide<2->{%
+\begin{alertblock}{The Golden Rule}
+\centering\Large $i$ never moves backward.
+\end{alertblock}
+}
+
+\vspace{0.4cm}
+\onslide<3->{%
+\begin{center}
+\footnotesize This is exactly what the naive approach could \textbf{not} do --- it restarts $i$ from scratch at every new position.
+\end{center}
+}
+\end{frame}
+
+\begin{frame}{The Aha Moment: Reusing Overlaps}
+\noindent{\large\bfseries Recall: $S=$\texttt{ABAB}, \ $LPS=[0,0,1,2]$\par}
+\vspace{0.1cm}
+\centering
+\begin{tikzpicture}[x=0.85cm,y=1cm]
+\path[use as bounding box] (-1.6,-1.7) rectangle (7.3,3.1);
+
+\node[anchor=east] at (-0.4,0.35) {Text:};
+\foreach \letter [count=\p from 0] in {A,B,A,B,A,B} {
+  \draw (\p,0) rectangle (\p+1,0.7);
+  \node[font=\ttfamily\large] at (\p+0.5,0.35) {\letter};
+  \node[font=\scriptsize] at (\p+0.5,-0.3) {\p};
+}
+\node[anchor=east] at (-0.4,2.0) {Pattern:};
+
+\only<1>{
+  \foreach \p in {0,1,2,3} {
+    \fill[green!22] (\p,1.65) rectangle (\p+1,2.35);
+    \draw (\p,1.65) rectangle (\p+1,2.35);
+  }
+  \foreach \letter [count=\p from 0] in {A,B,A,B} {
+    \node[font=\ttfamily\large] at (\p+0.5,2.0) {\letter};
+  }
+  \draw[green!40!black,very thick] (0,1.65) rectangle (4,2.35);
+  \draw[green!40!black,very thick] (0,0) rectangle (4,0.7);
+  \node[anchor=north,align=center,text width=6.8cm,font=\small] at (3.5,-0.65)
+    {\textcolor{green!40!black}{\checkmark} Full match at index \textbf{0}! Since $LPS[3]=2$, jump straight to $j=2$ --- keep \texttt{AB}, no need to recheck it.};
+}
+
+\only<2>{
+  \foreach \p in {2,3} {
+    \fill[yellow!20] (\p,1.65) rectangle (\p+1,2.35);
+    \draw[black!40] (\p,1.65) rectangle (\p+1,2.35);
+  }
+  \foreach \p in {4,5} {
+    \fill[green!22] (\p,1.65) rectangle (\p+1,2.35);
+    \draw (\p,1.65) rectangle (\p+1,2.35);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B} {
+    \node[font=\ttfamily\large] at (2+\i+0.5,2.0) {\letter};
+  }
+  \draw[green!40!black,very thick] (2,1.65) rectangle (6,2.35);
+  \draw[green!40!black,very thick] (2,0) rectangle (6,0.7);
+  \node[anchor=north,align=center,text width=6.8cm,font=\small] at (3.5,-0.65)
+    {\textcolor{green!40!black}{\checkmark} Full match at index \textbf{2}! Two overlapping matches, found with \textbf{zero} wasted comparisons and \textbf{no} backward move of $i$.};
+}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{KMP Search Algorithm}
+\noindent{\Large\bfseries Scanning the Text\par}
+\vspace{0.4cm}
+
+\onslide<1->{%
+\begin{tabular}{@{}r c l@{}}
+$i$ & = & current position in the \textbf{text} \\[3pt]
+$j$ & = & current position in the \textbf{pattern} \\[3pt]
+$n,\ m$ & = & lengths of the text and pattern
+\end{tabular}
+}
+
+\vspace{0.7cm}
+
+\onslide<2->{%
+\small
+\[
+\text{Step}(i,j) \;=\; \left\{
+\begin{array}{ll}
+(i+1,\ j+1) & \text{if } T[i]=P[j] \quad\text{\scriptsize(match --- advance both)}\\[6pt]
+(i,\ LPS[j-1]) & \text{if } T[i]\neq P[j],\ j>0 \quad\text{\scriptsize(fall back, keep $i$)}\\[6pt]
+(i+1,\ 0) & \text{if } T[i]\neq P[j],\ j=0 \quad\text{\scriptsize(advance $i$ only)}
+\end{array}
+\right.
+\]
+}
+
+\vspace{0.4cm}
+\onslide<3->{%
+\begin{center}
+\large Whenever $j$ reaches $m$: \textbf{report a match} at index $i-m$, then set $j \leftarrow LPS[m-1]$.
+\end{center}
+}
+\end{frame}
+
+\begin{frame}{KMP Search: Pseudocode}
+\noindent{\Large\bfseries Putting It Into Code\par}
+\vspace{0.15cm}
+
+\onslide<1->{%
+\begin{exampleblock}{KMP-Search$(T,\,P,\,LPS)$}
+\ttfamily\footnotesize
+$n \leftarrow$ length$(T)$\qquad $m \leftarrow$ length$(P)$\\
+$i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
+\textbf{while} $i < n$:\\
+\quad\textbf{if} $T[i] = P[j]$:\\
+\quad\quad $i \leftarrow i+1$\qquad $j \leftarrow j+1$\\
+\quad\quad \textbf{if} $j = m$:\\
+\quad\quad\quad \textbf{report} match at index $i-m$\\
+\quad\quad\quad $j \leftarrow LPS[j-1]$\\
+\quad\textbf{else if} $j > 0$:\\
+\quad\quad $j \leftarrow LPS[j-1]$\\
+\quad\textbf{else}:\\
+\quad\quad $i \leftarrow i+1$
+\end{exampleblock}
+}
+
+\vspace{0.2cm}
+\onslide<2->{%
+\begin{center}
+\footnotesize Exactly the same three rules from the previous slide --- now written as code we could actually run.
+\end{center}
+}
+\end{frame}
+
+% =====================================================================
+%  FIRST SIMULATION — Redesigned for clarity with indexes, pointer
+%  arrows, sliding pattern, and per-step match/mismatch status
+% =====================================================================
+\begin{frame}{KMP Search Simulation}
+\noindent{\small\bfseries Warm-up: $T=$\texttt{aabaacaadaabaaba},\ $P=$\texttt{aaba},\ $LPS=[0,1,0,1]$\par}
+\vspace{-0.1cm}
+\centering
+\begin{tikzpicture}[x=0.58cm,y=0.75cm,
+  >=stealth,
+  ptrI/.style={->,blue!70!black,thick,font=\scriptsize\bfseries},
+  ptrJ/.style={->,violet!80!black,thick,font=\scriptsize\bfseries},
+  statusbox/.style={draw,rounded corners=3pt,inner sep=3pt,font=\footnotesize,
+                    minimum width=6cm,text centered},
+  matchbox/.style={statusbox,fill=green!12,draw=green!50!black},
+  missbox/.style={statusbox,fill=red!10,draw=red!60!black},
+  foundbox/.style={statusbox,fill=blue!10,draw=blue!60!black,font=\footnotesize\bfseries},
+  slidearrow/.style={->,orange!80!black,very thick,dashed}]
+
+\path[use as bounding box] (-2.6,-3.2) rectangle (16.8,4.1);
+
+% ── Legend (shown on all step overlays) ──
+\only<1-18>{
+\node[anchor=west,font=\scriptsize] at (-2.5,3.6)
+  {\colorbox{yellow!20}{\phantom{x}}\,inherited \quad
+   \colorbox{green!22}{\phantom{x}}\,match \quad
+   \colorbox{red!18}{\phantom{x}}\,mismatch \quad
+   \textcolor{blue!70!black}{$\downarrow i$}\,text ptr \quad
+   \textcolor{violet!80!black}{$\downarrow j$}\,pattern ptr};
+}
+
+% ── Text row (always visible) ──
+\node[anchor=east,font=\small\bfseries] at (-0.4,0.3) {Text};
+\foreach \letter [count=\p from 0] in {a,a,b,a,a,c,a,a,d,a,a,b,a,a,b,a} {
+  \draw (\p,0) rectangle (\p+1,0.6);
+  \node[font=\ttfamily\large] at (\p+0.5,0.3) {\letter};
+  \node[font=\tiny,gray] at (\p+0.5,-0.22) {\p};
+}
+
+% ── Pattern label (shown on step overlays) ──
+\only<1-18>{\node[anchor=east,font=\small\bfseries] at (-0.4,1.8) {Pattern};}
+
+% ── Match highlight bands on text row ──
+\only<3->{\draw[red!75!black,very thick] (0,0) rectangle (4,0.6);}
+\only<15->{\draw[blue!70!black,very thick] (9,0) rectangle (13,0.6);}
+\only<18->{\draw[orange!85!black,very thick] (12,0) rectangle (16,0.6);}
+
+% ====================================================================
+%  OVERLAY 1 — Align at s=0, show all 4 match one by one: first match
+% ====================================================================
+\only<1>{
+  % Pattern boxes — all green (match)
+  \foreach \p in {0,1,2,3} {
+    \fill[green!22] (\p,1.5) rectangle (\p+1,2.1);
+    \draw (\p,1.5) rectangle (\p+1,2.1);
+  }
+  \foreach \letter [count=\p from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (\p+0.5,1.8) {\letter};
+  }
+  % Pattern index labels
+  \foreach \idx in {0,1,2,3} {
+    \node[font=\tiny,violet!70!black] at (\idx+0.5,2.28) {\idx};
+  }
+  % i pointer
+  \draw[ptrI] (0.5,1.1) -- (0.5,0.7) node[above left,pos=0] {$i{=}0$};
+  % j pointer
+  \draw[ptrJ] (0.5,2.8) -- (0.5,2.2) node[above,pos=0] {$j{=}0$};
+  % Status
+  \node[matchbox] at (11,2.5) {Comparing $T[0]{=}$\texttt{a} vs $P[0]{=}$\texttt{a}};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Start: pattern aligned at position 0. Compare each character left-to-right.};
+}
+
+% ====================================================================
+%  OVERLAY 2 — s=0 continued, show all matches confirmed
+% ====================================================================
+\only<2>{
+  \foreach \p in {0,1,2,3} {
+    \fill[green!22] (\p,1.5) rectangle (\p+1,2.1);
+    \draw (\p,1.5) rectangle (\p+1,2.1);
+  }
+  \foreach \letter [count=\p from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (\p+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \node[font=\tiny,violet!70!black] at (\idx+0.5,2.28) {\idx};
+  }
+  % Show all four match check-marks
+  \foreach \p in {0,1,2,3} {
+    \node[green!50!black,font=\scriptsize] at (\p+0.5,1.2) {\checkmark};
+  }
+  \draw[ptrI] (3.5,1.1) -- (3.5,0.7) node[above left,pos=0] {$i{=}3$};
+  \draw[ptrJ] (3.5,2.8) -- (3.5,2.2) node[above,pos=0] {$j{=}3$};
+  \node[matchbox] at (11,2.5) {All 4 match: $T[0..3]=P[0..3]$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {$T[0..3]$ = \texttt{aaba} matches $P[0..3]$ perfectly. $j$ reaches $m{=}4$.};
+}
+
+% ====================================================================
+%  OVERLAY 3 — FOUND at index 0, announce + show LPS jump
+% ====================================================================
+\only<3>{
+  \foreach \p in {0,1,2,3} {
+    \fill[green!22] (\p,1.5) rectangle (\p+1,2.1);
+    \draw (\p,1.5) rectangle (\p+1,2.1);
+  }
+  \foreach \letter [count=\p from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (\p+0.5,1.8) {\letter};
+  }
+  \draw[red!75!black,very thick] (0,1.5) rectangle (4,2.1);
+  \foreach \idx in {0,1,2,3} {
+    \node[font=\tiny,violet!70!black] at (\idx+0.5,2.28) {\idx};
+  }
+  \node[foundbox] at (11,2.5) {\textcolor{red!75!black}{\checkmark} Match found at index \textbf{0}};
+  % Slide arrow showing jump to s=3
+  \draw[slidearrow] (4.2,1.8) -- node[above,font=\tiny,orange!80!black] {slide} (3.0,1.3) -- (3.0,1.0);
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {\textcolor{red!75!black}{\checkmark} Pattern found at index \textbf{0}!\  $LPS[3]{=}1 \Rightarrow j \leftarrow 1$. Slide pattern so $P[0]$ aligns with $T[3]$.};
+}
+
+% ====================================================================
+%  OVERLAY 4 — Pattern slid to s=3. Index 3 inherited. Compare i=4
+% ====================================================================
+\only<4>{
+  % Pattern at offset 3
+  \fill[yellow!20] (3,1.5) rectangle (4,2.1);
+  \draw[black!40] (3,1.5) rectangle (4,2.1);
+  \fill[green!22] (4,1.5) rectangle (5,2.1);
+  \draw (4,1.5) rectangle (5,2.1);
+  \draw[black!25] (5,1.5) rectangle (6,2.1);
+  \draw[black!25] (6,1.5) rectangle (7,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (3+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{3+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[yellow!60!black,font=\scriptsize] at (3.5,1.2) {kept};
+  \draw[ptrI] (4.5,1.1) -- (4.5,0.7) node[above left,pos=0] {$i{=}4$};
+  \draw[ptrJ] (4.5,2.8) -- (4.5,2.2) node[above,pos=0] {$j{=}1$};
+  \node[matchbox] at (11,2.5) {$T[4]{=}$\texttt{a} vs $P[1]{=}$\texttt{a} \checkmark};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Pattern slid to $s{=}3$. Index 3 inherited (no re-check). $T[4]{=}P[1]$ \checkmark.  Advance both.};
+}
+
+% ====================================================================
+%  OVERLAY 5 — i=5, j=2: mismatch T[5]='c' vs P[2]='b'
+% ====================================================================
+\only<5>{
+  \fill[yellow!20] (3,1.5) rectangle (4,2.1);
+  \draw[black!40] (3,1.5) rectangle (4,2.1);
+  \fill[green!22] (4,1.5) rectangle (5,2.1);
+  \draw (4,1.5) rectangle (5,2.1);
+  \fill[red!18] (5,1.5) rectangle (6,2.1);
+  \draw[red] (5,1.5) rectangle (6,2.1);
+  \draw[black!25] (6,1.5) rectangle (7,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (3+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{3+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[red] at (5.5,2.5) {$\times$};
+  \draw[red,thick] (5,0) rectangle (6,0.6);
+  \draw[ptrI] (5.5,1.1) -- (5.5,0.7) node[above left,pos=0] {$i{=}5$};
+  \draw[ptrJ] (5.5,2.8) -- (5.5,2.2) node[above right,pos=0] {$j{=}2$};
+  \node[missbox] at (11,2.5) {$T[5]{=}$\texttt{c} vs $P[2]{=}$\texttt{b} $\times$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Mismatch! $T[5]$=\texttt{c} $\neq$ $P[2]$=\texttt{b}. $LPS[1]{=}1 \Rightarrow j \leftarrow 1$. Slide pattern right to $s{=}4$.};
+}
+
+% ====================================================================
+%  OVERLAY 6 — Pattern at s=4. Inherited index 4. Mismatch at i=5
+% ====================================================================
+\only<6>{
+  \fill[yellow!20] (4,1.5) rectangle (5,2.1);
+  \draw[black!40] (4,1.5) rectangle (5,2.1);
+  \fill[red!18] (5,1.5) rectangle (6,2.1);
+  \draw[red] (5,1.5) rectangle (6,2.1);
+  \draw[black!25] (6,1.5) rectangle (7,2.1);
+  \draw[black!25] (7,1.5) rectangle (8,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (4+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{4+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[red] at (5.5,2.5) {$\times$};
+  \draw[red,thick] (5,0) rectangle (6,0.6);
+  \draw[ptrI] (5.5,1.1) -- (5.5,0.7) node[above left,pos=0] {$i{=}5$};
+  \draw[ptrJ] (5.5,2.8) -- (5.5,2.2) node[above right,pos=0] {$j{=}1$};
+  \node[missbox] at (11,2.5) {$T[5]{=}$\texttt{c} vs $P[1]{=}$\texttt{a} $\times$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Slid to $s{=}4$. Index 4 inherited. $T[5]$=\texttt{c} $\neq$ $P[1]$=\texttt{a}. $LPS[0]{=}0 \Rightarrow j \leftarrow 0$. Slide to $s{=}5$.};
+}
+
+% ====================================================================
+%  OVERLAY 7 — Pattern at s=5. Immediate mismatch at i=5
+% ====================================================================
+\only<7>{
+  \fill[red!18] (5,1.5) rectangle (6,2.1);
+  \draw[red] (5,1.5) rectangle (6,2.1);
+  \draw[black!25] (6,1.5) rectangle (7,2.1);
+  \draw[black!25] (7,1.5) rectangle (8,2.1);
+  \draw[black!25] (8,1.5) rectangle (9,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (5+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{5+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[red] at (5.5,2.5) {$\times$};
+  \draw[red,thick] (5,0) rectangle (6,0.6);
+  \draw[ptrI] (5.5,1.1) -- (5.5,0.7) node[above left,pos=0] {$i{=}5$};
+  \draw[ptrJ] (5.5,2.8) -- (5.5,2.2) node[above right,pos=0] {$j{=}0$};
+  \node[missbox] at (11,2.5) {$T[5]{=}$\texttt{c} vs $P[0]{=}$\texttt{a} $\times$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Immediate mismatch at $j{=}0$. Can't fall back further $\Rightarrow$ advance $i$ to 6. Slide to $s{=}6$.};
+}
+
+% ====================================================================
+%  OVERLAY 8 — Pattern at s=6. Match i=6,7 then mismatch at i=8
+% ====================================================================
+\only<8>{
+  \fill[green!22] (6,1.5) rectangle (7,2.1);
+  \draw (6,1.5) rectangle (7,2.1);
+  \fill[green!22] (7,1.5) rectangle (8,2.1);
+  \draw (7,1.5) rectangle (8,2.1);
+  \draw[black!25] (8,1.5) rectangle (9,2.1);
+  \draw[black!25] (9,1.5) rectangle (10,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (6+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{6+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \draw[ptrI] (7.5,1.1) -- (7.5,0.7) node[above left,pos=0] {$i{=}7$};
+  \draw[ptrJ] (7.5,2.8) -- (7.5,2.2) node[above,pos=0] {$j{=}1$};
+  \node[matchbox] at (11,2.5) {$T[6,7]$ vs $P[0,1]$: both \checkmark};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Pattern at $s{=}6$. $T[6]{=}P[0]$ \checkmark, $T[7]{=}P[1]$ \checkmark. Continue\ldots};
+}
+
+% ====================================================================
+%  OVERLAY 9 — i=8, j=2: mismatch 'd' vs 'b'
+% ====================================================================
+\only<9>{
+  \fill[green!22] (6,1.5) rectangle (7,2.1);
+  \draw (6,1.5) rectangle (7,2.1);
+  \fill[green!22] (7,1.5) rectangle (8,2.1);
+  \draw (7,1.5) rectangle (8,2.1);
+  \fill[red!18] (8,1.5) rectangle (9,2.1);
+  \draw[red] (8,1.5) rectangle (9,2.1);
+  \draw[black!25] (9,1.5) rectangle (10,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (6+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{6+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[red] at (8.5,2.5) {$\times$};
+  \draw[red,thick] (8,0) rectangle (9,0.6);
+  \draw[ptrI] (8.5,1.1) -- (8.5,0.7) node[above left,pos=0] {$i{=}8$};
+  \draw[ptrJ] (8.5,2.8) -- (8.5,2.2) node[above right,pos=0] {$j{=}2$};
+  \node[missbox] at (11,2.5) {$T[8]{=}$\texttt{d} vs $P[2]{=}$\texttt{b} $\times$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Mismatch! $T[8]$=\texttt{d} $\neq$ $P[2]$=\texttt{b}. $LPS[1]{=}1 \Rightarrow j \leftarrow 1$. Slide to $s{=}7$.};
+}
+
+% ====================================================================
+%  OVERLAY 10 — Pattern at s=7. Inherited 7. Mismatch at i=8
+% ====================================================================
+\only<10>{
+  \fill[yellow!20] (7,1.5) rectangle (8,2.1);
+  \draw[black!40] (7,1.5) rectangle (8,2.1);
+  \fill[red!18] (8,1.5) rectangle (9,2.1);
+  \draw[red] (8,1.5) rectangle (9,2.1);
+  \draw[black!25] (9,1.5) rectangle (10,2.1);
+  \draw[black!25] (10,1.5) rectangle (11,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (7+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{7+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[red] at (8.5,2.5) {$\times$};
+  \draw[red,thick] (8,0) rectangle (9,0.6);
+  \draw[ptrI] (8.5,1.1) -- (8.5,0.7) node[above left,pos=0] {$i{=}8$};
+  \draw[ptrJ] (8.5,2.8) -- (8.5,2.2) node[above right,pos=0] {$j{=}1$};
+  \node[missbox] at (11,2.5) {$T[8]{=}$\texttt{d} vs $P[1]{=}$\texttt{a} $\times$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Slid to $s{=}7$. Index 7 inherited. $T[8]$=\texttt{d} $\neq$ $P[1]$. $LPS[0]{=}0 \Rightarrow j \leftarrow 0$. Slide to $s{=}8$.};
+}
+
+% ====================================================================
+%  OVERLAY 11 — Pattern at s=8. Immediate mismatch 'd' vs 'a'
+% ====================================================================
+\only<11>{
+  \fill[red!18] (8,1.5) rectangle (9,2.1);
+  \draw[red] (8,1.5) rectangle (9,2.1);
+  \draw[black!25] (9,1.5) rectangle (10,2.1);
+  \draw[black!25] (10,1.5) rectangle (11,2.1);
+  \draw[black!25] (11,1.5) rectangle (12,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (8+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{8+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[red] at (8.5,2.5) {$\times$};
+  \draw[red,thick] (8,0) rectangle (9,0.6);
+  \draw[ptrI] (8.5,1.1) -- (8.5,0.7) node[above left,pos=0] {$i{=}8$};
+  \draw[ptrJ] (8.5,2.8) -- (8.5,2.2) node[above right,pos=0] {$j{=}0$};
+  \node[missbox] at (11,2.5) {$T[8]{=}$\texttt{d} vs $P[0]{=}$\texttt{a} $\times$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Immediate mismatch at $j{=}0$ again. Advance $i$ to 9. Slide to $s{=}9$.};
+}
+
+% ====================================================================
+%  OVERLAY 12 — Pattern at s=9. Start matching i=9
+% ====================================================================
+\only<12>{
+  \fill[green!22] (9,1.5) rectangle (10,2.1);
+  \draw (9,1.5) rectangle (10,2.1);
+  \draw[black!25] (10,1.5) rectangle (11,2.1);
+  \draw[black!25] (11,1.5) rectangle (12,2.1);
+  \draw[black!25] (12,1.5) rectangle (13,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (9+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{9+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \draw[ptrI] (9.5,1.1) -- (9.5,0.7) node[above left,pos=0] {$i{=}9$};
+  \draw[ptrJ] (9.5,2.8) -- (9.5,2.2) node[above,pos=0] {$j{=}0$};
+  \node[matchbox] at (13,2.5) {$T[9]{=}$\texttt{a} vs $P[0]{=}$\texttt{a} \checkmark};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Pattern at $s{=}9$. $T[9]{=}P[0]$ \checkmark. Looking good---continue\ldots};
+}
+
+% ====================================================================
+%  OVERLAY 13 — s=9: all 4 match
+% ====================================================================
+\only<13>{
+  \foreach \p in {9,10,11,12} {
+    \fill[green!22] (\p,1.5) rectangle (\p+1,2.1);
+    \draw (\p,1.5) rectangle (\p+1,2.1);
+  }
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (9+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{9+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \foreach \p in {9,10,11,12} {
+    \node[green!50!black,font=\scriptsize] at (\p+0.5,1.2) {\checkmark};
+  }
+  \draw[ptrI] (12.5,1.1) -- (12.5,0.7) node[above left,pos=0] {$i{=}12$};
+  \draw[ptrJ] (12.5,2.8) -- (12.5,2.2) node[above,pos=0] {$j{=}3$};
+  \node[matchbox] at (13,2.5) {All 4 match: $T[9..12]=P[0..3]$};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {$T[9..12]$ = \texttt{aaba} matches $P[0..3]$. $j$ reaches $m{=}4$ again!};
+}
+
+% ====================================================================
+%  OVERLAY 14 — Found at index 9! + slide arrow
+% ====================================================================
+\only<14>{
+  \foreach \p in {9,10,11,12} {
+    \fill[green!22] (\p,1.5) rectangle (\p+1,2.1);
+    \draw (\p,1.5) rectangle (\p+1,2.1);
+  }
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (9+\i+0.5,1.8) {\letter};
+  }
+  \draw[blue!70!black,very thick] (9,1.5) rectangle (13,2.1);
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{9+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[foundbox] at (13,2.5) {\textcolor{blue!70!black}{\checkmark} Match found at index \textbf{9}};
+  \draw[slidearrow] (13.2,1.8) -- node[above,font=\tiny,orange!80!black] {slide} (12.0,1.3) -- (12.0,1.0);
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {\textcolor{blue!70!black}{\checkmark} Pattern found at index \textbf{9}!\ $LPS[3]{=}1 \Rightarrow j \leftarrow 1$. Slide to $s{=}12$.};
+}
+
+% ====================================================================
+%  OVERLAY 15 — Pattern at s=12. Inherited 12. Compare i=13
+% ====================================================================
+\only<15>{
+  \fill[yellow!20] (12,1.5) rectangle (13,2.1);
+  \draw[black!40] (12,1.5) rectangle (13,2.1);
+  \fill[green!22] (13,1.5) rectangle (14,2.1);
+  \draw (13,1.5) rectangle (14,2.1);
+  \draw[black!25] (14,1.5) rectangle (15,2.1);
+  \draw[black!25] (15,1.5) rectangle (16,2.1);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (12+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{12+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[yellow!60!black,font=\scriptsize] at (12.5,1.2) {kept};
+  \draw[ptrI] (13.5,1.1) -- (13.5,0.7) node[above left,pos=0] {$i{=}13$};
+  \draw[ptrJ] (13.5,2.8) -- (13.5,2.2) node[above,pos=0] {$j{=}1$};
+  \node[matchbox] at (11,2.5) {$T[13]{=}$\texttt{a} vs $P[1]{=}$\texttt{a} \checkmark};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {Slid to $s{=}12$. Index 12 inherited. $T[13]{=}P[1]$ \checkmark. Continue\ldots};
+}
+
+% ====================================================================
+%  OVERLAY 16 — i=14, j=2: match. i=15, j=3: match
+% ====================================================================
+\only<16>{
+  \fill[yellow!20] (12,1.5) rectangle (13,2.1);
+  \draw[black!40] (12,1.5) rectangle (13,2.1);
+  \foreach \p in {13,14,15} {
+    \fill[green!22] (\p,1.5) rectangle (\p+1,2.1);
+    \draw (\p,1.5) rectangle (\p+1,2.1);
+  }
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (12+\i+0.5,1.8) {\letter};
+  }
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{12+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \foreach \p in {13,14,15} {
+    \node[green!50!black,font=\scriptsize] at (\p+0.5,1.2) {\checkmark};
+  }
+  \draw[ptrI] (15.5,1.1) -- (15.5,0.7) node[above left,pos=0] {$i{=}15$};
+  \draw[ptrJ] (15.5,2.8) -- (15.5,2.2) node[above,pos=0] {$j{=}3$};
+  \node[matchbox] at (11,2.5) {$T[13..15]$ vs $P[1..3]$: all \checkmark};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {$T[13..15]$ all match. $j$ reaches $m{=}4$ once more!};
+}
+
+% ====================================================================
+%  OVERLAY 17 — Found at index 12! Full match
+% ====================================================================
+\only<17>{
+  \fill[yellow!20] (12,1.5) rectangle (13,2.1);
+  \draw[black!40] (12,1.5) rectangle (13,2.1);
+  \foreach \p in {13,14,15} {
+    \fill[green!22] (\p,1.5) rectangle (\p+1,2.1);
+    \draw (\p,1.5) rectangle (\p+1,2.1);
+  }
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (12+\i+0.5,1.8) {\letter};
+  }
+  \draw[orange!85!black,very thick] (12,1.5) rectangle (16,2.1);
+  \foreach \idx in {0,1,2,3} {
+    \pgfmathtruncatemacro{\pos}{12+\idx}
+    \node[font=\tiny,violet!70!black] at (\pos+0.5,2.28) {\idx};
+  }
+  \node[foundbox] at (11,2.5) {\textcolor{orange!85!black}{\checkmark} Match found at index \textbf{12}};
+  \node[anchor=north,align=center,text width=12cm,font=\small] at (7.5,-0.55)
+    {\textcolor{orange!85!black}{\checkmark} Pattern found at index \textbf{12}!\ End of text reached.};
+}
+
+% ====================================================================
+%  OVERLAY 18 — Final summary
+% ====================================================================
+\only<18>{
+  \node[anchor=north,align=center,text width=13cm,font=\normalsize\bfseries] at (7.5,-0.65)
+    {All three matches found: indices
+     \textcolor{red!75!black}{0},
+     \textcolor{blue!70!black}{9}, and
+     \textcolor{orange!85!black}{12}.
+     Total: just \textbf{20} character comparisons for a 16-character text.};
+}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{A Pattern with Real Self-Overlap}
+\vspace{0.1cm}
+
+\onslide<1->{%
+\begin{center}
+\large Pattern $P = $ \texttt{ABABCABAB} \quad $(m=9)$
+\end{center}
+
+\vspace{0.3cm}
+\centering
+\begin{tabular}{c|ccccccccc}
+$j$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+\hline
+$P[j]$ & A & B & A & B & C & A & B & A & B \\
+$LPS[j]$ & 0 & 0 & 1 & 2 & 0 & 1 & 2 & 3 & 4 \\
+\end{tabular}
+}
+
+\vspace{0.6cm}
+
+\onslide<2->{%
+\begin{center}
+\large Text $T = $ \texttt{ABABDABACDABABCABAB} \quad $(n=19)$
+\end{center}
+}
+
+\vspace{0.6cm}
+
+\onslide<3->{%
+\begin{center}
+\normalsize\itshape Watch the alignment jump straight past positions the naive approach would still be checking one by one.
+\end{center}
+}
+\end{frame}
+
+\begin{frame}{KMP Search Simulation: A Harder Case}
+\noindent{\scriptsize\bfseries New example: $T=$\texttt{ABABDABACDABABCABAB},\ $P=$\texttt{ABABCABAB},\ $LPS=[0,0,1,2,0,1,2,3,4]$\par}
+\vspace{-0.05cm}
+\centering
+\begin{tikzpicture}[x=0.5cm,y=0.85cm]
+\path[use as bounding box] (-2.4,-2.3) rectangle (19.6,3.1);
+
+\only<1-8>{
+\node[anchor=west,font=\scriptsize] at (-2.3,2.6)
+  {\colorbox{yellow!20}{\phantom{x}}\,inherited \quad
+   \colorbox{green!22}{\phantom{x}}\,match \quad
+   \colorbox{red!18}{\phantom{x}}\,mismatch};
+}
+
+\node[anchor=east] at (-0.3,0.3) {Text:};
+\foreach \letter [count=\p from 0] in {A,B,A,B,D,A,B,A,C,D,A,B,A,B,C,A,B,A,B} {
+  \draw (\p,0) rectangle (\p+1,0.6);
+  \node[font=\ttfamily\normalsize] at (\p+0.5,0.3) {\letter};
+  \node[font=\tiny] at (\p+0.5,-0.28) {\p};
+}
+\only<1-8>{\node[anchor=east] at (-0.3,1.5) {Pattern:};}
+
+\only<8->{\draw[green!45!black,very thick] (10,0) rectangle (19,0.6);}
+
+\only<1>{
+  \foreach \p in {0,1,2,3} {
+    \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
+    \draw (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \fill[red!18] (4,1.2) rectangle (5,1.8);
+  \draw[red] (4,1.2) rectangle (5,1.8);
+  \foreach \p in {5,6,7,8} {
+    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\p from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (\p+0.5,1.5) {\letter};
+  }
+  \node[red] at (4.5,2.0) {$\times$};
+  \draw[red,thick] (4,0) rectangle (5,0.6);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {$s=0$: indices 0--3 match, but index 4 mismatches ('D' vs 'C'). $LPS[3]=2 \Rightarrow$ fall back and retry from $s=2$.};
+}
+
+\only<2>{
+  \foreach \p in {2,3} {
+    \fill[yellow!20] (\p,1.2) rectangle (\p+1,1.8);
+    \draw[black!40] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \fill[red!18] (4,1.2) rectangle (5,1.8);
+  \draw[red] (4,1.2) rectangle (5,1.8);
+  \foreach \p in {5,6,7,8,9,10} {
+    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (2+\i+0.5,1.5) {\letter};
+  }
+  \node[red] at (4.5,2.0) {$\times$};
+  \draw[red,thick] (4,0) rectangle (5,0.6);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {Indices 2--3 are already known to match (inherited). New comparison at index 4 mismatches again ($LPS[1]=0 \Rightarrow$ fall back completely, retry from $s=4$).};
+}
+
+\only<3>{
+  \fill[red!18] (4,1.2) rectangle (5,1.8);
+  \draw[red] (4,1.2) rectangle (5,1.8);
+  \foreach \p in {5,6,7,8,9,10,11,12} {
+    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (4+\i+0.5,1.5) {\letter};
+  }
+  \node[red] at (4.5,2.0) {$\times$};
+  \draw[red,thick] (4,0) rectangle (5,0.6);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {No inherited characters this time --- index 4 mismatches immediately. Since $j=0$ already, advance $i$ and retry from $s=5$.};
+}
+
+\only<4>{
+  \foreach \p in {5,6,7} {
+    \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
+    \draw (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \fill[red!18] (8,1.2) rectangle (9,1.8);
+  \draw[red] (8,1.2) rectangle (9,1.8);
+  \foreach \p in {9,10,11,12,13} {
+    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (5+\i+0.5,1.5) {\letter};
+  }
+  \node[red] at (8.5,2.0) {$\times$};
+  \draw[red,thick] (8,0) rectangle (9,0.6);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {Indices 5--7 match, but index 8 mismatches ('C' vs 'B'). $LPS[2]=1 \Rightarrow$ fall back and retry from $s=7$.};
+}
+
+\only<5>{
+  \fill[yellow!20] (7,1.2) rectangle (8,1.8);
+  \draw[black!40] (7,1.2) rectangle (8,1.8);
+  \fill[red!18] (8,1.2) rectangle (9,1.8);
+  \draw[red] (8,1.2) rectangle (9,1.8);
+  \foreach \p in {9,10,11,12,13,14,15} {
+    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (7+\i+0.5,1.5) {\letter};
+  }
+  \node[red] at (8.5,2.0) {$\times$};
+  \draw[red,thick] (8,0) rectangle (9,0.6);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {Index 7 is already known to match. New comparison at index 8 mismatches again ($LPS[0]=0 \Rightarrow$ fall back completely, retry from $s=8$).};
+}
+
+\only<6>{
+  \fill[red!18] (8,1.2) rectangle (9,1.8);
+  \draw[red] (8,1.2) rectangle (9,1.8);
+  \foreach \p in {9,10,11,12,13,14,15,16} {
+    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (8+\i+0.5,1.5) {\letter};
+  }
+  \node[red] at (8.5,2.0) {$\times$};
+  \draw[red,thick] (8,0) rectangle (9,0.6);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {Index 8 mismatches immediately. Since $j=0$ already, advance $i$ and retry from $s=9$.};
+}
+
+\only<7>{
+  \fill[red!18] (9,1.2) rectangle (10,1.8);
+  \draw[red] (9,1.2) rectangle (10,1.8);
+  \foreach \p in {10,11,12,13,14,15,16,17} {
+    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (9+\i+0.5,1.5) {\letter};
+  }
+  \node[red] at (9.5,2.0) {$\times$};
+  \draw[red,thick] (9,0) rectangle (10,0.6);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {Index 9 mismatches immediately too. Advance $i$ once more and retry from $s=10$.};
+}
+
+\only<8>{
+  \foreach \p in {10,11,12,13,14,15,16,17,18} {
+    \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
+    \draw (\p,1.2) rectangle (\p+1,1.8);
+  }
+  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+    \node[font=\ttfamily\normalsize] at (10+\i+0.5,1.5) {\letter};
+  }
+  \draw[green!45!black,very thick] (10,1.2) rectangle (19,1.8);
+  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+    {\textcolor{green!45!black}{\checkmark} $s=10$: all nine characters match $\Rightarrow$ pattern found at index~\textbf{10}! We've reached the end of the text.};
+}
+
+\only<9>{
+  \node[anchor=north,align=center,text width=11.5cm,font=\normalsize\bfseries] at (9.5,-0.65)
+    {One match found, at index \textcolor{green!45!black}{10} --- using just 23 character comparisons for a 19-character text (versus a naive worst case of $19 \times 9 = 171$).};
+}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Efficiency in Numbers}
+\noindent{\Large\bfseries How Much Did We Save?\par}
+\vspace{0.3cm}
+
+\onslide<1->{%
+\begin{columns}[T]
+  \begin{column}{0.48\textwidth}
+    \begin{alertblock}{Naive Search (Worst Case)}
+      \begin{itemize}
+        \item \texttt{aaba}: $16 \times 4 = 64$ comparisons
+        \item \texttt{ABABCABAB}: $19 \times 9 = 171$ comparisons
+      \end{itemize}
+    \end{alertblock}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+    {\setbeamercolor{block title}{bg=green!55!black,fg=white}
+     \setbeamercolor{block body}{bg=green!10,fg=black}
+    \begin{block}{What KMP Actually Did}
+      \begin{itemize}
+        \item \texttt{aaba}: just \textbf{20} comparisons
+        \item \texttt{ABABCABAB}: just \textbf{23} comparisons
+      \end{itemize}
+    \end{block}}
+  \end{column}
+\end{columns}
+}
+
+\vspace{0.8cm}
+
+\onslide<2->{%
+\centering
+\begin{tabular}{@{}l c c@{}}
+ & \textbf{Time} & \textbf{Space} \\
+\hline
+Build LPS array & $O(m)$ & $O(m)$ \\
+Scan the text & $O(n)$ & $O(1)$ \\
+\hline
+\textbf{Total} & $\mathbf{O(n+m)}$ & $O(m)$ \\
+\end{tabular}
+}
+\end{frame}
+
+\begin{frame}{Summary}
+\noindent{\Large\bfseries Key Takeaways\par}
+\vspace{0.4cm}
+
+\onslide<1->{%
+\begin{itemize}
+  \item The \textbf{LPS array} captures self-overlap within the pattern
+  \item KMP uses it to \textbf{skip} redundant comparisons
+  \item The text pointer $i$ \textbf{never} moves backward
+  \item Total running time: $O(n+m)$ --- a huge win over naive's $O(n \cdot m)$
+\end{itemize}
+}
+
+\vspace{0.8cm}
+
+\onslide<2->{%
+\begin{center}
+\large\itshape Next: where does KMP make a real difference?
+\end{center}
+}
+\end{frame}
+
+\end{document}
