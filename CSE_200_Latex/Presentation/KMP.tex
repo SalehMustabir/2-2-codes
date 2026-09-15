@@ -19,11 +19,12 @@
 
 \begin{document}
 
+
 % =====================================================================
 %  PART 2 -- continues the frame count from Part 1 (Introduction ...
 %  LPS Construction Simulation). Only the frames below are new; the
 %  preamble/title are repeated here only so this file compiles on its
-%  own. When merging into the master deck, copy just the
+%  own. When merging insadasto the master deck, copy just the
 %  \begin{frame} ... \end{frame} blocks below (skip the duplicate
 %  preamble and titlepage), and make sure \usepackage{amssymb} is
 %  added once to the shared preamble (needed for \checkmark).
@@ -202,7 +203,7 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
 \begin{tikzpicture}[x=0.58cm,y=0.85cm]
 \path[use as bounding box] (-2.4,-2.3) rectangle (16.6,3.1);
 
-\only<1-9>{
+\only<1-13>{
 \node[anchor=west,font=\scriptsize] at (-2.3,2.6)
   {\colorbox{yellow!20}{\phantom{x}}\,inherited \quad
    \colorbox{green!22}{\phantom{x}}\,match \quad
@@ -215,11 +216,11 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
   \node[font=\ttfamily\large] at (\p+0.5,0.3) {\letter};
   \node[font=\scriptsize] at (\p+0.5,-0.28) {\p};
 }
-\only<1-9>{\node[anchor=east] at (-0.3,1.5) {Pattern:};}
+\only<1-13>{\node[anchor=east] at (-0.3,1.5) {Pattern:};}
 
 \only<1->{\draw[red!75!black,very thick] (0,0) rectangle (4,0.6);}
-\only<8->{\draw[blue!70!black,very thick] (9,0) rectangle (13,0.6);}
-\only<9->{\draw[orange!85!black,very thick] (12,0) rectangle (16,0.6);}
+\only<12->{\draw[blue!70!black,very thick] (9,0) rectangle (13,0.6);}
+\only<13->{\draw[orange!85!black,very thick] (12,0) rectangle (16,0.6);}
 
 \only<1>{
   \foreach \p in {0,1,2,3} {
@@ -235,8 +236,44 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
     {\textcolor{red!75!black}{\checkmark} $s=0$: all four characters match $\Rightarrow$ pattern found at index~\textbf{0}! Since $LPS[3]=1$, jump straight to $s=3$ --- indices 1 and 2 are skipped entirely.\\[3pt]
      {\scriptsize\textbf{Trace:} $i:0\to1\to2\to3\to4$ (4 matches) $\quad$ $j:0\to1\to2\to3\to4{=}m\Rightarrow$ \textbf{match!} $j\leftarrow LPS[3]{=}1$}};
 }
-
 \only<2>{
+  \fill[yellow!20] (3,1.2) rectangle (4,1.8);
+  \draw[black!40] (3,1.2) rectangle (4,1.8);
+  %\fill[green!22] (4,1.2) rectangle (5,1.8);
+  \draw[black!25] (4,1.2) rectangle (5,1.8);
+  %\fill[red!18] (5,1.2) rectangle (6,1.8);
+  \draw[black!25] (5,1.2) rectangle (6,1.8);
+  \draw[black!25] (6,1.2) rectangle (7,1.8);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (3+\i+0.5,1.5) {\letter};
+    \node[font=\tiny,black!55] at (3+\i+0.5,1.02) {$j{=}\i$};
+  }
+  %\node[red] at (5.5,2.0) {$\times$};
+  %\draw[red,thick] (5,0) rectangle (6,0.6);
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+    {Index 3 is already known to match (inherited). New comparisons: index 4 matches, but index 5 mismatches ($LPS[1]=1 \Rightarrow$ fall back and retry from $s=4$).\\[3pt]
+     {\scriptsize\textbf{Trace:} $i:4\to5$ (index 4 match, index 5 mismatch) $\quad$ $j:1\to2\to$ mismatch $\Rightarrow j\leftarrow LPS[1]{=}1$}};
+}
+
+\only<3>{
+  \fill[yellow!20] (3,1.2) rectangle (4,1.8);
+  \draw[black!40] (3,1.2) rectangle (4,1.8);
+  \fill[green!22] (4,1.2) rectangle (5,1.8);
+  \draw (4,1.2) rectangle (5,1.8);
+  %\fill[red!18] (5,1.2) rectangle (6,1.8);
+  \draw[black!25] (5,1.2) rectangle (6,1.8);
+  \draw[black!25] (6,1.2) rectangle (7,1.8);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (3+\i+0.5,1.5) {\letter};
+    \node[font=\tiny,black!55] at (3+\i+0.5,1.02) {$j{=}\i$};
+  }
+  %\node[red] at (5.5,2.0) {$\times$};
+  %\draw[red,thick] (5,0) rectangle (6,0.6);
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+    {Index 3 is already known to match (inherited). New comparisons: index 4 matches, but index 5 mismatches ($LPS[1]=1 \Rightarrow$ fall back and retry from $s=4$).\\[3pt]
+     {\scriptsize\textbf{Trace:} $i:4\to5$ (index 4 match, index 5 mismatch) $\quad$ $j:1\to2\to$ mismatch $\Rightarrow j\leftarrow LPS[1]{=}1$}};
+}
+\only<4>{
   \fill[yellow!20] (3,1.2) rectangle (4,1.8);
   \draw[black!40] (3,1.2) rectangle (4,1.8);
   \fill[green!22] (4,1.2) rectangle (5,1.8);
@@ -255,7 +292,7 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i:4\to5$ (index 4 match, index 5 mismatch) $\quad$ $j:1\to2\to$ mismatch $\Rightarrow j\leftarrow LPS[1]{=}1$}};
 }
 
-\only<3>{
+\only<5>{
   \fill[yellow!20] (4,1.2) rectangle (5,1.8);
   \draw[black!40] (4,1.2) rectangle (5,1.8);
   \fill[red!18] (5,1.2) rectangle (6,1.8);
@@ -273,7 +310,7 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i=5$ (mismatch again, $i$ unchanged) $\quad$ $j:1\to$ mismatch $\Rightarrow j\leftarrow LPS[0]{=}0$}};
 }
 
-\only<4>{
+\only<6>{
   \fill[red!18] (5,1.2) rectangle (6,1.8);
   \draw[red] (5,1.2) rectangle (6,1.8);
   \draw[black!25] (6,1.2) rectangle (7,1.8);
@@ -290,7 +327,45 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i:5\to6$ ($j{=}0$, so mismatch just advances $i$) $\quad$ $j:0\to0$ (unchanged)}};
 }
 
-\only<5>{
+\only<7>{
+  \fill[green!22] (6,1.2) rectangle (7,1.8);
+  \draw (6,1.2) rectangle (7,1.8);
+  %\fill[green!22] (7,1.2) rectangle (8,1.8);
+  \draw[black!25] (7,1.2) rectangle (8,1.8);
+  %\fill[red!18] (8,1.2) rectangle (9,1.8);
+  \draw[black!25] (8,1.2) rectangle (9,1.8);
+  \draw[black!25] (9,1.2) rectangle (10,1.8);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (6+\i+0.5,1.5) {\letter};
+    \node[font=\tiny,black!55] at (6+\i+0.5,1.02) {$j{=}\i$};
+  }
+  %\node[red] at (8.5,2.0) {$\times$};
+  %\draw[red,thick] (8,0) rectangle (9,0.6);
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+    {Indices 6 and 7 match, but index 8 ('d') breaks the streak. $LPS[1]=1 \Rightarrow$ fall back and retry from $s=7$.\\[3pt]
+     {\scriptsize\textbf{Trace:} $i:6\to7\to8$ (2 matches, then mismatch) $\quad$ $j:0\to1\to2\to$ mismatch $\Rightarrow j\leftarrow LPS[1]{=}1$}};
+}
+
+\only<8>{
+  \fill[green!22] (6,1.2) rectangle (7,1.8);
+  \draw (6,1.2) rectangle (7,1.8);
+  \fill[green!22] (7,1.2) rectangle (8,1.8);
+  \draw (7,1.2) rectangle (8,1.8);
+  %\fill[red!18] (8,1.2) rectangle (9,1.8);
+  \draw[black!25] (8,1.2) rectangle (9,1.8);
+  \draw[black!25] (9,1.2) rectangle (10,1.8);
+  \foreach \letter [count=\i from 0] in {a,a,b,a} {
+    \node[font=\ttfamily\large] at (6+\i+0.5,1.5) {\letter};
+    \node[font=\tiny,black!55] at (6+\i+0.5,1.02) {$j{=}\i$};
+  }
+  %\node[red] at (8.5,2.0) {$\times$};
+  %\draw[red,thick] (8,0) rectangle (9,0.6);
+  \node[anchor=north,align=center,text width=10.5cm,font=\small] at (7.5,-0.65)
+    {Indices 6 and 7 match, but index 8 ('d') breaks the streak. $LPS[1]=1 \Rightarrow$ fall back and retry from $s=7$.\\[3pt]
+     {\scriptsize\textbf{Trace:} $i:6\to7\to8$ (2 matches, then mismatch) $\quad$ $j:0\to1\to2\to$ mismatch $\Rightarrow j\leftarrow LPS[1]{=}1$}};
+}
+
+\only<9>{
   \fill[green!22] (6,1.2) rectangle (7,1.8);
   \draw (6,1.2) rectangle (7,1.8);
   \fill[green!22] (7,1.2) rectangle (8,1.8);
@@ -309,7 +384,7 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i:6\to7\to8$ (2 matches, then mismatch) $\quad$ $j:0\to1\to2\to$ mismatch $\Rightarrow j\leftarrow LPS[1]{=}1$}};
 }
 
-\only<6>{
+\only<10>{
   \fill[yellow!20] (7,1.2) rectangle (8,1.8);
   \draw[black!40] (7,1.2) rectangle (8,1.8);
   \fill[red!18] (8,1.2) rectangle (9,1.8);
@@ -327,7 +402,7 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i=8$ (mismatch again) $\quad$ $j:1\to$ mismatch $\Rightarrow j\leftarrow LPS[0]{=}0$}};
 }
 
-\only<7>{
+\only<11>{
   \fill[red!18] (8,1.2) rectangle (9,1.8);
   \draw[red] (8,1.2) rectangle (9,1.8);
   \draw[black!25] (9,1.2) rectangle (10,1.8);
@@ -344,7 +419,7 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i:8\to9$ ($j{=}0$, mismatch advances $i$) $\quad$ $j:0\to0$ (unchanged)}};
 }
 
-\only<8>{
+\only<12>{
   \foreach \p in {9,10,11,12} {
     \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
     \draw (\p,1.2) rectangle (\p+1,1.8);
@@ -359,7 +434,7 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i:9\to10\to11\to12\to13$ (4 matches) $\quad$ $j:0\to1\to2\to3\to4{=}m\Rightarrow$ \textbf{match!} $j\leftarrow LPS[3]{=}1$}};
 }
 
-\only<9>{
+\only<13>{
   \fill[yellow!20] (12,1.2) rectangle (13,1.8);
   \draw[black!40] (12,1.2) rectangle (13,1.8);
   \foreach \p in {13,14,15} {
@@ -376,210 +451,210 @@ $i \leftarrow 0$\qquad $j \leftarrow 0$\\[3pt]
      {\scriptsize\textbf{Trace:} $i:13\to14\to15\to16$ (3 matches) $\quad$ $j:1\to2\to3\to4{=}m\Rightarrow$ \textbf{match!} ($i{=}n$, scan complete)}};
 }
 
-\only<10>{
+\only<14>{
   \node[anchor=north,align=center,text width=11cm,font=\normalsize\bfseries] at (7.5,-0.65)
     {All three matches found --- exactly as promised in the introduction: indices \textcolor{red!75!black}{0}, \textcolor{blue!70!black}{9}, and \textcolor{orange!85!black}{12}. Total: just 20 character comparisons for a 16-character text.};
 }
 \end{tikzpicture}
 \end{frame}
 
-\begin{frame}{A Pattern with Real Self-Overlap}
-\vspace{0.1cm}
+% \begin{frame}{A Pattern with Real Self-Overlap}
+% \vspace{0.1cm}
 
-\onslide<1->{%
-\begin{center}
-\large Pattern $P = $ \texttt{ABABCABAB} \quad $(m=9)$
-\end{center}
+% \onslide<1->{%
+% \begin{center}
+% \large Pattern $P = $ \texttt{ABABCABAB} \quad $(m=9)$
+% \end{center}
 
-\vspace{0.3cm}
-\centering
-\begin{tabular}{c|ccccccccc}
-$j$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
-\hline
-$P[j]$ & A & B & A & B & C & A & B & A & B \\
-$LPS[j]$ & 0 & 0 & 1 & 2 & 0 & 1 & 2 & 3 & 4 \\
-\end{tabular}
-}
+% \vspace{0.3cm}
+% \centering
+% \begin{tabular}{c|ccccccccc}
+% $j$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+% \hline
+% $P[j]$ & A & B & A & B & C & A & B & A & B \\
+% $LPS[j]$ & 0 & 0 & 1 & 2 & 0 & 1 & 2 & 3 & 4 \\
+% \end{tabular}
+% }
 
-\vspace{0.6cm}
+% \vspace{0.6cm}
 
-\onslide<2->{%
-\begin{center}
-\large Text $T = $ \texttt{ABABDABACDABABCABAB} \quad $(n=19)$
-\end{center}
-}
+% \onslide<2->{%
+% \begin{center}
+% \large Text $T = $ \texttt{ABABDABACDABABCABAB} \quad $(n=19)$
+% \end{center}
+% }
 
-\vspace{0.6cm}
+% \vspace{0.6cm}
 
-\onslide<3->{%
-\begin{center}
-\normalsize\itshape Watch the alignment jump straight past positions the naive approach would still be checking one by one.
-\end{center}
-}
-\end{frame}
+% \onslide<3->{%
+% \begin{center}
+% \normalsize\itshape Watch the alignment jump straight past positions the naive approach would still be checking one by one.
+% \end{center}
+% }
+% \end{frame}
 
-\begin{frame}{KMP Search Simulation: A Harder Case}
-\noindent{\scriptsize\bfseries New example: $T=$\texttt{ABABDABACDABABCABAB},\ $P=$\texttt{ABABCABAB},\ $LPS=[0,0,1,2,0,1,2,3,4]$\par}
-\vspace{-0.05cm}
-\centering
-\begin{tikzpicture}[x=0.5cm,y=0.85cm]
-\path[use as bounding box] (-2.4,-2.3) rectangle (19.6,3.1);
+% \begin{frame}{KMP Search Simulation: A Harder Case}
+% \noindent{\scriptsize\bfseries New example: $T=$\texttt{ABABDABACDABABCABAB},\ $P=$\texttt{ABABCABAB},\ $LPS=[0,0,1,2,0,1,2,3,4]$\par}
+% \vspace{-0.05cm}
+% \centering
+% \begin{tikzpicture}[x=0.5cm,y=0.85cm]
+% \path[use as bounding box] (-2.4,-2.3) rectangle (19.6,3.1);
 
-\only<1-8>{
-\node[anchor=west,font=\scriptsize] at (-2.3,2.6)
-  {\colorbox{yellow!20}{\phantom{x}}\,inherited \quad
-   \colorbox{green!22}{\phantom{x}}\,match \quad
-   \colorbox{red!18}{\phantom{x}}\,mismatch};
-}
+% \only<1-8>{
+% \node[anchor=west,font=\scriptsize] at (-2.3,2.6)
+%   {\colorbox{yellow!20}{\phantom{x}}\,inherited \quad
+%    \colorbox{green!22}{\phantom{x}}\,match \quad
+%    \colorbox{red!18}{\phantom{x}}\,mismatch};
+% }
 
-\node[anchor=east] at (-0.3,0.3) {Text:};
-\foreach \letter [count=\p from 0] in {A,B,A,B,D,A,B,A,C,D,A,B,A,B,C,A,B,A,B} {
-  \draw (\p,0) rectangle (\p+1,0.6);
-  \node[font=\ttfamily\normalsize] at (\p+0.5,0.3) {\letter};
-  \node[font=\tiny] at (\p+0.5,-0.28) {\p};
-}
-\only<1-8>{\node[anchor=east] at (-0.3,1.5) {Pattern:};}
+% \node[anchor=east] at (-0.3,0.3) {Text:};
+% \foreach \letter [count=\p from 0] in {A,B,A,B,D,A,B,A,C,D,A,B,A,B,C,A,B,A,B} {
+%   \draw (\p,0) rectangle (\p+1,0.6);
+%   \node[font=\ttfamily\normalsize] at (\p+0.5,0.3) {\letter};
+%   \node[font=\tiny] at (\p+0.5,-0.28) {\p};
+% }
+% \only<1-8>{\node[anchor=east] at (-0.3,1.5) {Pattern:};}
 
-\only<8->{\draw[green!45!black,very thick] (10,0) rectangle (19,0.6);}
+% \only<8->{\draw[green!45!black,very thick] (10,0) rectangle (19,0.6);}
 
-\only<1>{
-  \foreach \p in {0,1,2,3} {
-    \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
-    \draw (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \fill[red!18] (4,1.2) rectangle (5,1.8);
-  \draw[red] (4,1.2) rectangle (5,1.8);
-  \foreach \p in {5,6,7,8} {
-    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\p from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (\p+0.5,1.5) {\letter};
-  }
-  \node[red] at (4.5,2.0) {$\times$};
-  \draw[red,thick] (4,0) rectangle (5,0.6);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {$s=0$: indices 0--3 match, but index 4 mismatches ('D' vs 'C'). $LPS[3]=2 \Rightarrow$ fall back and retry from $s=2$.};
-}
+% \only<1>{
+%   \foreach \p in {0,1,2,3} {
+%     \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
+%     \draw (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \fill[red!18] (4,1.2) rectangle (5,1.8);
+%   \draw[red] (4,1.2) rectangle (5,1.8);
+%   \foreach \p in {5,6,7,8} {
+%     \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\p from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (\p+0.5,1.5) {\letter};
+%   }
+%   \node[red] at (4.5,2.0) {$\times$};
+%   \draw[red,thick] (4,0) rectangle (5,0.6);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {$s=0$: indices 0--3 match, but index 4 mismatches ('D' vs 'C'). $LPS[3]=2 \Rightarrow$ fall back and retry from $s=2$.};
+% }
 
-\only<2>{
-  \foreach \p in {2,3} {
-    \fill[yellow!20] (\p,1.2) rectangle (\p+1,1.8);
-    \draw[black!40] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \fill[red!18] (4,1.2) rectangle (5,1.8);
-  \draw[red] (4,1.2) rectangle (5,1.8);
-  \foreach \p in {5,6,7,8,9,10} {
-    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (2+\i+0.5,1.5) {\letter};
-  }
-  \node[red] at (4.5,2.0) {$\times$};
-  \draw[red,thick] (4,0) rectangle (5,0.6);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {Indices 2--3 are already known to match (inherited). New comparison at index 4 mismatches again ($LPS[1]=0 \Rightarrow$ fall back completely, retry from $s=4$).};
-}
+% \only<2>{
+%   \foreach \p in {2,3} {
+%     \fill[yellow!20] (\p,1.2) rectangle (\p+1,1.8);
+%     \draw[black!40] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \fill[red!18] (4,1.2) rectangle (5,1.8);
+%   \draw[red] (4,1.2) rectangle (5,1.8);
+%   \foreach \p in {5,6,7,8,9,10} {
+%     \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (2+\i+0.5,1.5) {\letter};
+%   }
+%   \node[red] at (4.5,2.0) {$\times$};
+%   \draw[red,thick] (4,0) rectangle (5,0.6);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {Indices 2--3 are already known to match (inherited). New comparison at index 4 mismatches again ($LPS[1]=0 \Rightarrow$ fall back completely, retry from $s=4$).};
+% }
 
-\only<3>{
-  \fill[red!18] (4,1.2) rectangle (5,1.8);
-  \draw[red] (4,1.2) rectangle (5,1.8);
-  \foreach \p in {5,6,7,8,9,10,11,12} {
-    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (4+\i+0.5,1.5) {\letter};
-  }
-  \node[red] at (4.5,2.0) {$\times$};
-  \draw[red,thick] (4,0) rectangle (5,0.6);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {No inherited characters this time --- index 4 mismatches immediately. Since $j=0$ already, advance $i$ and retry from $s=5$.};
-}
+% \only<3>{
+%   \fill[red!18] (4,1.2) rectangle (5,1.8);
+%   \draw[red] (4,1.2) rectangle (5,1.8);
+%   \foreach \p in {5,6,7,8,9,10,11,12} {
+%     \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (4+\i+0.5,1.5) {\letter};
+%   }
+%   \node[red] at (4.5,2.0) {$\times$};
+%   \draw[red,thick] (4,0) rectangle (5,0.6);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {No inherited characters this time --- index 4 mismatches immediately. Since $j=0$ already, advance $i$ and retry from $s=5$.};
+% }
 
-\only<4>{
-  \foreach \p in {5,6,7} {
-    \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
-    \draw (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \fill[red!18] (8,1.2) rectangle (9,1.8);
-  \draw[red] (8,1.2) rectangle (9,1.8);
-  \foreach \p in {9,10,11,12,13} {
-    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (5+\i+0.5,1.5) {\letter};
-  }
-  \node[red] at (8.5,2.0) {$\times$};
-  \draw[red,thick] (8,0) rectangle (9,0.6);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {Indices 5--7 match, but index 8 mismatches ('C' vs 'B'). $LPS[2]=1 \Rightarrow$ fall back and retry from $s=7$.};
-}
+% \only<4>{
+%   \foreach \p in {5,6,7} {
+%     \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
+%     \draw (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \fill[red!18] (8,1.2) rectangle (9,1.8);
+%   \draw[red] (8,1.2) rectangle (9,1.8);
+%   \foreach \p in {9,10,11,12,13} {
+%     \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (5+\i+0.5,1.5) {\letter};
+%   }
+%   \node[red] at (8.5,2.0) {$\times$};
+%   \draw[red,thick] (8,0) rectangle (9,0.6);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {Indices 5--7 match, but index 8 mismatches ('C' vs 'B'). $LPS[2]=1 \Rightarrow$ fall back and retry from $s=7$.};
+% }
 
-\only<5>{
-  \fill[yellow!20] (7,1.2) rectangle (8,1.8);
-  \draw[black!40] (7,1.2) rectangle (8,1.8);
-  \fill[red!18] (8,1.2) rectangle (9,1.8);
-  \draw[red] (8,1.2) rectangle (9,1.8);
-  \foreach \p in {9,10,11,12,13,14,15} {
-    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (7+\i+0.5,1.5) {\letter};
-  }
-  \node[red] at (8.5,2.0) {$\times$};
-  \draw[red,thick] (8,0) rectangle (9,0.6);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {Index 7 is already known to match. New comparison at index 8 mismatches again ($LPS[0]=0 \Rightarrow$ fall back completely, retry from $s=8$).};
-}
+% \only<5>{
+%   \fill[yellow!20] (7,1.2) rectangle (8,1.8);
+%   \draw[black!40] (7,1.2) rectangle (8,1.8);
+%   \fill[red!18] (8,1.2) rectangle (9,1.8);
+%   \draw[red] (8,1.2) rectangle (9,1.8);
+%   \foreach \p in {9,10,11,12,13,14,15} {
+%     \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (7+\i+0.5,1.5) {\letter};
+%   }
+%   \node[red] at (8.5,2.0) {$\times$};
+%   \draw[red,thick] (8,0) rectangle (9,0.6);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {Index 7 is already known to match. New comparison at index 8 mismatches again ($LPS[0]=0 \Rightarrow$ fall back completely, retry from $s=8$).};
+% }
 
-\only<6>{
-  \fill[red!18] (8,1.2) rectangle (9,1.8);
-  \draw[red] (8,1.2) rectangle (9,1.8);
-  \foreach \p in {9,10,11,12,13,14,15,16} {
-    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (8+\i+0.5,1.5) {\letter};
-  }
-  \node[red] at (8.5,2.0) {$\times$};
-  \draw[red,thick] (8,0) rectangle (9,0.6);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {Index 8 mismatches immediately. Since $j=0$ already, advance $i$ and retry from $s=9$.};
-}
+% \only<6>{
+%   \fill[red!18] (8,1.2) rectangle (9,1.8);
+%   \draw[red] (8,1.2) rectangle (9,1.8);
+%   \foreach \p in {9,10,11,12,13,14,15,16} {
+%     \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (8+\i+0.5,1.5) {\letter};
+%   }
+%   \node[red] at (8.5,2.0) {$\times$};
+%   \draw[red,thick] (8,0) rectangle (9,0.6);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {Index 8 mismatches immediately. Since $j=0$ already, advance $i$ and retry from $s=9$.};
+% }
 
-\only<7>{
-  \fill[red!18] (9,1.2) rectangle (10,1.8);
-  \draw[red] (9,1.2) rectangle (10,1.8);
-  \foreach \p in {10,11,12,13,14,15,16,17} {
-    \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (9+\i+0.5,1.5) {\letter};
-  }
-  \node[red] at (9.5,2.0) {$\times$};
-  \draw[red,thick] (9,0) rectangle (10,0.6);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {Index 9 mismatches immediately too. Advance $i$ once more and retry from $s=10$.};
-}
+% \only<7>{
+%   \fill[red!18] (9,1.2) rectangle (10,1.8);
+%   \draw[red] (9,1.2) rectangle (10,1.8);
+%   \foreach \p in {10,11,12,13,14,15,16,17} {
+%     \draw[black!25] (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (9+\i+0.5,1.5) {\letter};
+%   }
+%   \node[red] at (9.5,2.0) {$\times$};
+%   \draw[red,thick] (9,0) rectangle (10,0.6);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {Index 9 mismatches immediately too. Advance $i$ once more and retry from $s=10$.};
+% }
 
-\only<8>{
-  \foreach \p in {10,11,12,13,14,15,16,17,18} {
-    \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
-    \draw (\p,1.2) rectangle (\p+1,1.8);
-  }
-  \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
-    \node[font=\ttfamily\normalsize] at (10+\i+0.5,1.5) {\letter};
-  }
-  \draw[green!45!black,very thick] (10,1.2) rectangle (19,1.8);
-  \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
-    {\textcolor{green!45!black}{\checkmark} $s=10$: all nine characters match $\Rightarrow$ pattern found at index~\textbf{10}! We've reached the end of the text.};
-}
+% \only<8>{
+%   \foreach \p in {10,11,12,13,14,15,16,17,18} {
+%     \fill[green!22] (\p,1.2) rectangle (\p+1,1.8);
+%     \draw (\p,1.2) rectangle (\p+1,1.8);
+%   }
+%   \foreach \letter [count=\i from 0] in {A,B,A,B,C,A,B,A,B} {
+%     \node[font=\ttfamily\normalsize] at (10+\i+0.5,1.5) {\letter};
+%   }
+%   \draw[green!45!black,very thick] (10,1.2) rectangle (19,1.8);
+%   \node[anchor=north,align=center,text width=11cm,font=\footnotesize] at (9.5,-0.65)
+%     {\textcolor{green!45!black}{\checkmark} $s=10$: all nine characters match $\Rightarrow$ pattern found at index~\textbf{10}! We've reached the end of the text.};
+% }
 
-\only<9>{
-  \node[anchor=north,align=center,text width=11.5cm,font=\normalsize\bfseries] at (9.5,-0.65)
-    {One match found, at index \textcolor{green!45!black}{10} --- using just 23 character comparisons for a 19-character text (versus a naive worst case of $19 \times 9 = 171$).};
-}
-\end{tikzpicture}
-\end{frame}
+% \only<9>{
+%   \node[anchor=north,align=center,text width=11.5cm,font=\normalsize\bfseries] at (9.5,-0.65)
+%     {One match found, at index \textcolor{green!45!black}{10} --- using just 23 character comparisons for a 19-character text (versus a naive worst case of $19 \times 9 = 171$).};
+% }
+% \end{tikzpicture}
+% \end{frame}
 
 \begin{frame}{Efficiency in Numbers}
 \noindent{\Large\bfseries How Much Did We Save?\par}
@@ -591,7 +666,7 @@ $LPS[j]$ & 0 & 0 & 1 & 2 & 0 & 1 & 2 & 3 & 4 \\
     \begin{alertblock}{Naive Search (Worst Case)}
       \begin{itemize}
         \item \texttt{aaba}: $16 \times 4 = 64$ comparisons
-        \item \texttt{ABABCABAB}: $19 \times 9 = 171$ comparisons
+        %\item \texttt{ABABCABAB}: $19 \times 9 = 171$ comparisons
       \end{itemize}
     \end{alertblock}
   \end{column}
@@ -601,7 +676,7 @@ $LPS[j]$ & 0 & 0 & 1 & 2 & 0 & 1 & 2 & 3 & 4 \\
     \begin{block}{What KMP Actually Did}
       \begin{itemize}
         \item \texttt{aaba}: just \textbf{20} comparisons
-        \item \texttt{ABABCABAB}: just \textbf{23} comparisons
+        %\item \texttt{ABABCABAB}: just \textbf{23} comparisons
       \end{itemize}
     \end{block}}
   \end{column}
