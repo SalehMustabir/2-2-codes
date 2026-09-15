@@ -1,451 +1,218 @@
-import java.util.ArrayList;
-import java.util.List;
-
-/*
- * ============================================================
- * SMART DISCOUNT CALCULATION SYSTEM
- * Design Pattern: Strategy Pattern
- * ============================================================
- *
- * There are three independent discount policies:
- *
- * 1. Purchase Amount Discount
- * 2. Customer Category Discount
- * 3. Payment Method Discount
- *
- * Each policy calculates its own discount.
- * The system selects ONLY the highest discount.
- *
- * Discounts are NOT combined.
- */
-
-
-/*
- * ------------------------------------------------------------
- * CUSTOMER CATEGORY
- * ------------------------------------------------------------
- */
-enum CustomerCategory {
-    REGULAR,
-    PREMIUM
-}
-
-
-/*
- * ------------------------------------------------------------
- * PAYMENT METHOD
- * ------------------------------------------------------------
- */
-enum PaymentMethod {
-    CARD,
-    MFS,
-    CASH
-}
-
-
-/*
- * ------------------------------------------------------------
- * DISCOUNT STRATEGY INTERFACE
- * ------------------------------------------------------------
- *
- * This is the Strategy interface.
- *
- * Every discount policy must implement calculateDiscount()
- * and return a discount percentage.
- */
+// ---------------------------------------------------------
+// Strategy Interface
+// ---------------------------------------------------------
+// Every discount policy will implement this interface.
+// Each strategy independently calculates a discount percentage.
 interface DiscountStrategy {
 
-    // Returns discount percentage.
-    double calculateDiscount(double purchaseAmount);
-
-    // Returns the name of the discount policy.
-    String getPolicyName();
+    // Returns the discount percentage for a purchase.
+    double calculateDiscount(double amount,
+                             String customerType,
+                             String paymentMethod);
 }
 
 
-/*
- * ------------------------------------------------------------
- * PURCHASE AMOUNT DISCOUNT STRATEGY
- * ------------------------------------------------------------
- *
- * Rules:
- *
- * Below 1000       -> 0%
- * 1000 - 1999      -> 5%
- * 2000 - 2999      -> 10%
- * 3000 - 3999      -> 15%
- * 4000 - 4999      -> 20%
- * 5000 or more     -> 25%
- */
+// ---------------------------------------------------------
+// Concrete Strategy 1: Purchase Amount Discount
+// ---------------------------------------------------------
 class PurchaseAmountDiscount implements DiscountStrategy {
 
     @Override
-    public double calculateDiscount(double purchaseAmount) {
+    public double calculateDiscount(double amount,
+                                    String customerType,
+                                    String paymentMethod) {
 
-        if (purchaseAmount < 1000) {
-            return 0;
-        }
-        else if (purchaseAmount < 2000) {
-            return 5;
-        }
-        else if (purchaseAmount < 3000) {
-            return 10;
-        }
-        else if (purchaseAmount < 4000) {
-            return 15;
-        }
-        else if (purchaseAmount < 5000) {
-            return 20;
-        }
-        else {
-            return 25;
-        }
-    }
+        // For every complete Tk 1000:
+        // 1000 -> 5%
+        // 2000 -> 10%
+        // 3000 -> 15%
+        // ...
+        // Maximum discount is 25%.
 
-    @Override
-    public String getPolicyName() {
-        return "Purchase Amount Discount";
+        int completeThousands = (int) (amount / 1000);
+
+        // Each complete Tk 1000 gives 5%.
+        double discount = completeThousands * 5;
+
+        // Maximum purchase amount discount is 25%.
+        if (discount > 25) {
+            discount = 25;
+        }
+
+        return discount;
     }
 }
 
 
-/*
- * ------------------------------------------------------------
- * CUSTOMER CATEGORY DISCOUNT STRATEGY
- * ------------------------------------------------------------
- *
- * REGULAR  -> 5%
- * PREMIUM  -> 15%
- */
+// ---------------------------------------------------------
+// Concrete Strategy 2: Customer Category Discount
+// ---------------------------------------------------------
 class CustomerCategoryDiscount implements DiscountStrategy {
 
-    private CustomerCategory category;
-
-    public CustomerCategoryDiscount(CustomerCategory category) {
-        this.category = category;
-    }
-
     @Override
-    public double calculateDiscount(double purchaseAmount) {
+    public double calculateDiscount(double amount,
+                                    String customerType,
+                                    String paymentMethod) {
 
-        if (category == CustomerCategory.PREMIUM) {
+        if (customerType.equalsIgnoreCase("PREMIUM")) {
             return 15;
         }
 
-        return 5;
-    }
+        // REGULAR customer gets 5%.
+        if (customerType.equalsIgnoreCase("REGULAR")) {
+            return 5;
+        }
 
-    @Override
-    public String getPolicyName() {
-        return "Customer Category Discount";
+        // If category is unknown, no discount.
+        return 0;
     }
 }
 
 
-/*
- * ------------------------------------------------------------
- * PAYMENT METHOD DISCOUNT STRATEGY
- * ------------------------------------------------------------
- *
- * CARD -> 2%
- * MFS  -> 5%
- * CASH -> 8%
- */
+// ---------------------------------------------------------
+// Concrete Strategy 3: Payment Method Discount
+// ---------------------------------------------------------
 class PaymentMethodDiscount implements DiscountStrategy {
 
-    private PaymentMethod paymentMethod;
-
-    public PaymentMethodDiscount(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
-    }
-
     @Override
-    public double calculateDiscount(double purchaseAmount) {
+    public double calculateDiscount(double amount,
+                                    String customerType,
+                                    String paymentMethod) {
 
-        switch (paymentMethod) {
-
-            case CARD:
-                return 2;
-
-            case MFS:
-                return 5;
-
-            case CASH:
-                return 8;
-
-            default:
-                return 0;
+        if (paymentMethod.equalsIgnoreCase("CARD")) {
+            return 2;
         }
-    }
 
-    @Override
-    public String getPolicyName() {
-        return "Payment Method Discount";
-    }
-}
+        if (paymentMethod.equalsIgnoreCase("MFS")) {
+            return 5;
+        }
 
+        if (paymentMethod.equalsIgnoreCase("CASH")) {
+            return 8;
+        }
 
-/*
- * ------------------------------------------------------------
- * DISCOUNT RESULT
- * ------------------------------------------------------------
- *
- * This class stores:
- *
- * - Policy name
- * - Discount percentage
- *
- * It is useful for displaying which policy was selected.
- */
-class DiscountResult {
-
-    private String policyName;
-    private double discountPercentage;
-
-    public DiscountResult(
-            String policyName,
-            double discountPercentage) {
-
-        this.policyName = policyName;
-        this.discountPercentage = discountPercentage;
-    }
-
-    public String getPolicyName() {
-        return policyName;
-    }
-
-    public double getDiscountPercentage() {
-        return discountPercentage;
+        // Unknown payment method -> no discount.
+        return 0;
     }
 }
 
 
-/*
- * ------------------------------------------------------------
- * DISCOUNT CALCULATOR
- * ------------------------------------------------------------
- *
- * This is the CONTEXT of the Strategy Pattern.
- *
- * It does not contain the actual discount rules.
- * Instead, it receives different strategies and evaluates them.
- */
+// ---------------------------------------------------------
+// Context
+// ---------------------------------------------------------
+// The DiscountCalculator acts as the Context.
+// It receives different discount strategies and evaluates them.
 class DiscountCalculator {
 
-    private List<DiscountStrategy> strategies;
+    private DiscountStrategy[] strategies;
 
-    public DiscountCalculator() {
-
-        // List stores all applicable discount strategies.
-        strategies = new ArrayList<>();
+    public DiscountCalculator(DiscountStrategy[] strategies) {
+        this.strategies = strategies;
     }
 
+    // Evaluates ALL discount policies and returns the highest one.
+    public double getBestDiscount(double amount,
+                                  String customerType,
+                                  String paymentMethod) {
 
-    /*
-     * Add a discount strategy.
-     */
-    public void addStrategy(DiscountStrategy strategy) {
-        strategies.add(strategy);
-    }
+        double highestDiscount = 0;
 
-
-    /*
-     * Evaluate all strategies and return the strategy
-     * that provides the highest discount.
-     *
-     * IMPORTANT:
-     * Discounts are NOT added together.
-     */
-    public DiscountResult findBestDiscount(double purchaseAmount) {
-
-        double highestDiscount = -1;
-        String selectedPolicy = "";
-
-        // Evaluate every discount strategy independently.
+        // Evaluate every strategy independently.
         for (DiscountStrategy strategy : strategies) {
 
-            double discount =
-                    strategy.calculateDiscount(purchaseAmount);
+            double currentDiscount =
+                    strategy.calculateDiscount(
+                            amount,
+                            customerType,
+                            paymentMethod
+                    );
 
-            System.out.println(
-                    strategy.getPolicyName()
-                    + " -> "
-                    + discount
-                    + "%"
-            );
-
-            /*
-             * If this discount is higher than the current
-             * highest discount, select this policy.
-             *
-             * If two policies have the same discount,
-             * the first one is kept.
-             * The problem allows any one of the tied policies.
-             */
-            if (discount > highestDiscount) {
-
-                highestDiscount = discount;
-                selectedPolicy = strategy.getPolicyName();
+            // Keep only the highest discount.
+            if (currentDiscount > highestDiscount) {
+                highestDiscount = currentDiscount;
             }
         }
 
-        return new DiscountResult(
-                selectedPolicy,
-                highestDiscount
-        );
+        return highestDiscount;
     }
 }
 
 
-/*
- * ------------------------------------------------------------
- * MAIN CLASS
- * ------------------------------------------------------------
- */
+// ---------------------------------------------------------
+// Main Class
+// ---------------------------------------------------------
 public class StrategyA2 {
 
     public static void main(String[] args) {
 
-        /*
-         * ====================================================
-         * EXAMPLE 1
-         * ====================================================
-         *
-         * Purchase Amount : ৳3,500
-         * Customer Type   : PREMIUM
-         * Payment Method  : CASH
-         *
-         * Purchase Amount Discount -> 15%
-         * Customer Category Discount -> 15%
-         * Payment Method Discount -> 8%
-         *
-         * Highest = 15%
-         *
-         * Only 15% is applied.
-         */
+        // Create all available discount strategies.
+        DiscountStrategy[] strategies = {
 
-        double purchaseAmount = 3500;
+                new PurchaseAmountDiscount(),
+                new CustomerCategoryDiscount(),
+                new PaymentMethodDiscount()
+        };
 
-        CustomerCategory customerCategory =
-                CustomerCategory.PREMIUM;
-
-        PaymentMethod paymentMethod =
-                PaymentMethod.CASH;
-
-
-        /*
-         * Create the Context.
-         */
+        // Create the Context.
         DiscountCalculator calculator =
-                new DiscountCalculator();
+                new DiscountCalculator(strategies);
 
 
-        /*
-         * Add all applicable strategies.
-         *
-         * Each strategy works independently.
-         */
-        calculator.addStrategy(
-                new PurchaseAmountDiscount()
-        );
+        // -------------------------------------------------
+        // Example 1
+        // -------------------------------------------------
+        double amount = 3500;
+        String customerType = "PREMIUM";
+        String paymentMethod = "CASH";
 
-        calculator.addStrategy(
-                new CustomerCategoryDiscount(
-                        customerCategory
-                )
-        );
-
-        calculator.addStrategy(
-                new PaymentMethodDiscount(
+        double bestDiscount =
+                calculator.getBestDiscount(
+                        amount,
+                        customerType,
                         paymentMethod
-                )
-        );
+                );
+
+        double payableAmount =
+                amount - (amount * bestDiscount / 100);
+
+        System.out.println("Purchase Amount: Tk " + amount);
+        System.out.println("Customer Type: " + customerType);
+        System.out.println("Payment Method: " + paymentMethod);
+
+        System.out.println("Applied Discount: "
+                + bestDiscount + "%");
+
+        System.out.println("Final Payable Amount: Tk "
+                + payableAmount);
 
 
-        System.out.println(
-                "======================================"
-        );
+        // -------------------------------------------------
+        // Example 2
+        // -------------------------------------------------
+        amount = 5500;
+        customerType = "PREMIUM";
+        paymentMethod = "CASH";
 
-        System.out.println(
-                "SMART DISCOUNT CALCULATION"
-        );
+        bestDiscount =
+                calculator.getBestDiscount(
+                        amount,
+                        customerType,
+                        paymentMethod
+                );
 
-        System.out.println(
-                "======================================"
-        );
+        payableAmount =
+                amount - (amount * bestDiscount / 100);
 
-        System.out.println(
-                "Purchase Amount : ৳" + purchaseAmount
-        );
+        System.out.println("\n-------------------------");
 
-        System.out.println(
-                "Customer Type   : " + customerCategory
-        );
+        System.out.println("Purchase Amount: Tk " + amount);
+        System.out.println("Customer Type: " + customerType);
+        System.out.println("Payment Method: " + paymentMethod);
 
-        System.out.println(
-                "Payment Method  : " + paymentMethod
-        );
+        System.out.println("Applied Discount: "
+                + bestDiscount + "%");
 
-        System.out.println(
-                "\nAvailable Discounts:"
-        );
-
-
-        /*
-         * Find the highest discount.
-         */
-        DiscountResult result =
-                calculator.findBestDiscount(purchaseAmount);
-
-
-        /*
-         * Calculate the actual discount amount.
-         */
-        double discountAmount =
-                purchaseAmount
-                * result.getDiscountPercentage()
-                / 100;
-
-
-        /*
-         * Calculate final payable amount.
-         */
-        double finalAmount =
-                purchaseAmount - discountAmount;
-
-
-        System.out.println(
-                "\n======================================"
-        );
-
-        System.out.println(
-                "FINAL RESULT"
-        );
-
-        System.out.println(
-                "======================================"
-        );
-
-        System.out.println(
-                "Selected Policy : "
-                + result.getPolicyName()
-        );
-
-        System.out.println(
-                "Applied Discount: "
-                + result.getDiscountPercentage()
-                + "%"
-        );
-
-        System.out.println(
-                "Discount Amount : ৳"
-                + discountAmount
-        );
-
-        System.out.println(
-                "Final Payable   : ৳"
-                + finalAmount
-        );
+        System.out.println("Final Payable Amount: Tk "
+                + payableAmount);
     }
 }
-

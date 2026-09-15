@@ -1,637 +1,870 @@
+// =========================================================
+// STATE INTERFACE
+// =========================================================
+// This interface defines all operations that can be
+// performed on a return request.
+//
+// Every state will implement these operations differently.
+// For example, approve() behaves differently in Requested
+// and Approved states.
 
-// ============================================================
-// E-commerce Return and Refund Workflow
-// Design Pattern: STATE PATTERN
-// ============================================================
-
-// State interface
-// Every state must define how each operation behaves.
 interface ReturnState {
 
-    void updateReason(ReturnRequest request, String reason);
+    void updateReason(String reason);
 
-    void approve(ReturnRequest request);
+    void approve();
 
-    void reject(ReturnRequest request);
+    void reject();
 
-    void cancel(ReturnRequest request);
+    void cancel();
 
-    void itemDelivered(ReturnRequest request);
+    void itemDelivered();
 
-    void inspect(ReturnRequest request, boolean eligible);
+    void inspect(boolean eligible);
 
-    void refundSuccessful(ReturnRequest request);
+    void refundSuccessful();
 
-    void refundFailed(ReturnRequest request);
+    void refundFailed();
 }
 
 
-// ============================================================
-// Context Class
-// ============================================================
+// =========================================================
+// CONTEXT CLASS: ReturnRequest
+// =========================================================
+// This class represents the actual return request.
+//
+// It stores:
+// 1. The current state
+// 2. The return reason
+//
+// It delegates all operations to the current state.
+//
+// The Context does not need to know the detailed behaviour
+// of every state.
 
 class ReturnRequest {
 
-    // Current state of the return request
-    private ReturnState state;
+    // Current state of the return request.
+    private ReturnState currentState;
 
-    // Store the return reason
+    // Reason for returning the product.
     private String reason;
 
+
+    // Constructor
     public ReturnRequest(String reason) {
+
         this.reason = reason;
 
-        // Every new request starts in Requested state
-        this.state = new RequestedState();
+        // Every new return request starts in Requested state.
+        currentState = new RequestedState(this);
     }
 
-    // Change the current state
-    public void setState(ReturnState state) {
-        this.state = state;
-    }
 
-    // Getter for state
-    public ReturnState getState() {
-        return state;
-    }
+    // -----------------------------------------------------
+    // Getters and Setters
+    // -----------------------------------------------------
 
-    // Getter for reason
     public String getReason() {
         return reason;
     }
 
-    // Setter for reason
+
     public void setReason(String reason) {
         this.reason = reason;
     }
 
 
-    // --------------------------------------------------------
-    // Operations delegated to the current state
-    // --------------------------------------------------------
+    public ReturnState getCurrentState() {
+        return currentState;
+    }
+
+
+    // This method allows a state to change the current state.
+    public void setState(ReturnState newState) {
+
+        currentState = newState;
+
+        System.out.println(
+                "Current State: "
+                + newState.getClass().getSimpleName()
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // Public Operations
+    // -----------------------------------------------------
+    // Each operation is forwarded to the current state.
 
     public void updateReason(String reason) {
-        state.updateReason(this, reason);
+        currentState.updateReason(reason);
     }
+
 
     public void approve() {
-        state.approve(this);
+        currentState.approve();
     }
+
 
     public void reject() {
-        state.reject(this);
+        currentState.reject();
     }
+
 
     public void cancel() {
-        state.cancel(this);
+        currentState.cancel();
     }
+
 
     public void itemDelivered() {
-        state.itemDelivered(this);
+        currentState.itemDelivered();
     }
+
 
     public void inspect(boolean eligible) {
-        state.inspect(this, eligible);
+        currentState.inspect(eligible);
     }
+
 
     public void refundSuccessful() {
-        state.refundSuccessful(this);
+        currentState.refundSuccessful();
     }
 
+
     public void refundFailed() {
-        state.refundFailed(this);
+        currentState.refundFailed();
     }
 }
 
 
-// ============================================================
-// 1. REQUESTED STATE
-// ============================================================
+// =========================================================
+// REQUESTED STATE
+// =========================================================
+// Initial state of the return request.
+//
+// Valid operations:
+// - updateReason()
+// - approve()
+// - reject()
+// - cancel()
+//
+// Invalid operations:
+// - itemDelivered()
+// - inspect()
+// - refundSuccessful()
+// - refundFailed()
 
 class RequestedState implements ReturnState {
 
-    @Override
-    public void updateReason(ReturnRequest request, String reason) {
+    private ReturnRequest request;
 
-        // Reason can be updated multiple times
-        request.setReason(reason);
 
-        System.out.println("Return reason updated to: " + reason);
+    public RequestedState(ReturnRequest request) {
+        this.request = request;
     }
 
-    @Override
-    public void approve(ReturnRequest request) {
 
-        // Requested -> Approved
-        request.setState(new ApprovedState());
+    @Override
+    public void updateReason(String reason) {
+
+        // The reason can be changed multiple times.
+        request.setReason(reason);
+
+        System.out.println(
+                "Return reason updated to: " + reason
+        );
+    }
+
+
+    @Override
+    public void approve() {
+
+        // Move from Requested to Approved.
+        request.setState(new ApprovedState(request));
 
         System.out.println("Return request approved.");
     }
 
-    @Override
-    public void reject(ReturnRequest request) {
 
-        // Requested -> Rejected
-        request.setState(new RejectedState());
+    @Override
+    public void reject() {
+
+        // Move from Requested to Rejected.
+        request.setState(new RejectedState(request));
 
         System.out.println("Return request rejected.");
     }
 
-    @Override
-    public void cancel(ReturnRequest request) {
 
-        // Requested -> Cancelled
-        request.setState(new CancelledState());
+    @Override
+    public void cancel() {
+
+        // Move from Requested to Cancelled.
+        request.setState(new CancelledState(request));
 
         System.out.println("Return request cancelled.");
     }
 
-    @Override
-    public void itemDelivered(ReturnRequest request) {
 
-        // Item cannot be delivered before approval
+    @Override
+    public void itemDelivered() {
+
         System.out.println(
-            "Invalid operation: Item cannot be marked delivered before approval."
+                "Invalid operation: Request must be approved first."
         );
     }
 
+
     @Override
-    public void inspect(ReturnRequest request, boolean eligible) {
+    public void inspect(boolean eligible) {
 
         System.out.println(
-            "Invalid operation: Item cannot be inspected before delivery."
+                "Invalid operation: Item has not been delivered."
         );
     }
 
+
     @Override
-    public void refundSuccessful(ReturnRequest request) {
+    public void refundSuccessful() {
 
         System.out.println(
-            "Invalid operation: Refund is not being processed."
+                "Invalid operation: Refund is not being processed."
         );
     }
 
+
     @Override
-    public void refundFailed(ReturnRequest request) {
+    public void refundFailed() {
 
         System.out.println(
-            "Invalid operation: Refund is not being processed."
+                "Invalid operation: Refund is not being processed."
         );
     }
 }
 
 
-// ============================================================
-// 2. APPROVED STATE
-// ============================================================
+// =========================================================
+// APPROVED STATE
+// =========================================================
+// In this state:
+//
+// - Return reason cannot be modified.
+// - Request can be cancelled.
+// - Item can be marked as delivered.
+//
+// Valid operations:
+// - cancel()
+// - itemDelivered()
+//
+// Invalid operations:
+// - updateReason()
+// - approve()
+// - reject()
+// - inspect()
+// - refundSuccessful()
+// - refundFailed()
 
 class ApprovedState implements ReturnState {
 
-    @Override
-    public void updateReason(ReturnRequest request, String reason) {
+    private ReturnRequest request;
 
-        // Reason cannot be changed after approval
+
+    public ApprovedState(ReturnRequest request) {
+        this.request = request;
+    }
+
+
+    @Override
+    public void updateReason(String reason) {
+
         System.out.println(
-            "Invalid operation: Return reason cannot be modified after approval."
+                "Invalid operation: Return reason cannot be changed after approval."
         );
     }
 
-    @Override
-    public void approve(ReturnRequest request) {
-
-        System.out.println("Invalid operation: Request is already approved.");
-    }
 
     @Override
-    public void reject(ReturnRequest request) {
+    public void approve() {
 
-        // Requirements do not allow rejection from Approved state
         System.out.println(
-            "Invalid operation: Approved request cannot be rejected."
+                "Invalid operation: Request is already approved."
         );
     }
 
-    @Override
-    public void cancel(ReturnRequest request) {
-
-        // Approved -> Cancelled
-        // Cancellation is allowed before item delivery.
-        request.setState(new CancelledState());
-
-        System.out.println("Approved return request cancelled.");
-    }
 
     @Override
-    public void itemDelivered(ReturnRequest request) {
-
-        // Approved -> Delivered
-        request.setState(new DeliveredState());
-
-        System.out.println("Returned item marked as delivered.");
-    }
-
-    @Override
-    public void inspect(ReturnRequest request, boolean eligible) {
+    public void reject() {
 
         System.out.println(
-            "Invalid operation: Item must be delivered before inspection."
+                "Invalid operation: Cannot reject an approved request directly."
         );
     }
 
+
     @Override
-    public void refundSuccessful(ReturnRequest request) {
+    public void cancel() {
+
+        // The item has not been delivered yet.
+        // Therefore, cancellation is allowed.
+        request.setState(new CancelledState(request));
+
+        System.out.println("Return request cancelled.");
+    }
+
+
+    @Override
+    public void itemDelivered() {
+
+        // Move from Approved to Delivered.
+        request.setState(new DeliveredState(request));
+
+        System.out.println("Returned item has been delivered.");
+    }
+
+
+    @Override
+    public void inspect(boolean eligible) {
 
         System.out.println(
-            "Invalid operation: Refund processing has not started."
+                "Invalid operation: Item must be delivered before inspection."
         );
     }
 
+
     @Override
-    public void refundFailed(ReturnRequest request) {
+    public void refundSuccessful() {
 
         System.out.println(
-            "Invalid operation: Refund processing has not started."
+                "Invalid operation: Refund processing has not started."
+        );
+    }
+
+
+    @Override
+    public void refundFailed() {
+
+        System.out.println(
+                "Invalid operation: Refund processing has not started."
         );
     }
 }
 
 
-// ============================================================
-// 3. DELIVERED STATE
-// ============================================================
+// =========================================================
+// DELIVERED STATE
+// =========================================================
+// In this state:
+//
+// - Cancellation is not allowed.
+// - Return reason cannot be modified.
+// - Item can be inspected.
+//
+// If eligible:
+//      Delivered -> ProcessingRefund
+//
+// If not eligible:
+//      Delivered -> Rejected
 
 class DeliveredState implements ReturnState {
 
+    private ReturnRequest request;
+
+
+    public DeliveredState(ReturnRequest request) {
+        this.request = request;
+    }
+
+
     @Override
-    public void updateReason(ReturnRequest request, String reason) {
+    public void updateReason(String reason) {
 
         System.out.println(
-            "Invalid operation: Return reason cannot be modified."
+                "Invalid operation: Return reason cannot be changed."
         );
     }
 
+
     @Override
-    public void approve(ReturnRequest request) {
+    public void approve() {
 
         System.out.println(
-            "Invalid operation: Request has already been approved."
+                "Invalid operation: Request is already approved."
         );
     }
 
-    @Override
-    public void reject(ReturnRequest request) {
-
-        // Delivered -> Rejected
-        request.setState(new RejectedState());
-
-        System.out.println("Return request rejected.");
-    }
 
     @Override
-    public void cancel(ReturnRequest request) {
+    public void reject() {
 
-        // Cannot cancel after delivery
+        // The item can be rejected after delivery.
+        request.setState(new RejectedState(request));
+
         System.out.println(
-            "Invalid operation: Delivered request cannot be cancelled."
+                "Return request rejected."
         );
     }
 
+
     @Override
-    public void itemDelivered(ReturnRequest request) {
+    public void cancel() {
 
         System.out.println(
-            "Invalid operation: Item is already delivered."
+                "Invalid operation: Delivered item cannot be cancelled."
         );
     }
 
-    @Override
-    public void inspect(ReturnRequest request, boolean eligible) {
 
-        // Inspection determines what happens next.
+    @Override
+    public void itemDelivered() {
+
+        System.out.println(
+                "Invalid operation: Item has already been delivered."
+        );
+    }
+
+
+    @Override
+    public void inspect(boolean eligible) {
+
+        System.out.println("Inspecting returned item...");
+
         if (eligible) {
 
-            // Eligible -> Processing Refund
-            request.setState(new ProcessingRefundState());
+            // Item satisfies the return policy.
+            // Start refund processing.
+            request.setState(
+                    new ProcessingRefundState(request)
+            );
 
             System.out.println(
-                "Inspection successful. Return is eligible."
-            );
-            System.out.println(
-                "Refund processing started."
+                    "Item is eligible. Refund processing started."
             );
 
         } else {
 
-            // Not eligible -> Rejected
-            request.setState(new RejectedState());
+            // Item does not satisfy the return policy.
+            // Move to the final Rejected state.
+            request.setState(new RejectedState(request));
 
             System.out.println(
-                "Inspection failed. Return is not eligible."
-            );
-            System.out.println(
-                "Return request rejected."
+                    "Item is not eligible. Return rejected."
             );
         }
     }
 
+
     @Override
-    public void refundSuccessful(ReturnRequest request) {
+    public void refundSuccessful() {
 
         System.out.println(
-            "Invalid operation: Refund processing has not started."
+                "Invalid operation: Item has not been inspected."
         );
     }
 
+
     @Override
-    public void refundFailed(ReturnRequest request) {
+    public void refundFailed() {
 
         System.out.println(
-            "Invalid operation: Refund processing has not started."
+                "Invalid operation: Refund processing has not started."
         );
     }
 }
 
 
-// ============================================================
-// 4. PROCESSING REFUND STATE
-// ============================================================
+// =========================================================
+// PROCESSING REFUND STATE
+// =========================================================
+// In this state:
+//
+// - Return reason cannot be modified.
+// - Cancellation is not allowed.
+// - Refund can succeed or fail.
+//
+// If refund succeeds:
+//      ProcessingRefund -> Refunded
+//
+// If refund fails:
+//      Remain in ProcessingRefund
+//
+// The refund can be attempted again later.
 
 class ProcessingRefundState implements ReturnState {
 
+    private ReturnRequest request;
+
+
+    public ProcessingRefundState(ReturnRequest request) {
+        this.request = request;
+    }
+
+
     @Override
-    public void updateReason(ReturnRequest request, String reason) {
+    public void updateReason(String reason) {
 
         System.out.println(
-            "Invalid operation: Return reason cannot be modified."
+                "Invalid operation: Return reason cannot be changed."
         );
     }
 
+
     @Override
-    public void approve(ReturnRequest request) {
+    public void approve() {
 
         System.out.println(
-            "Invalid operation: Request is already approved."
+                "Invalid operation: Request is already approved."
         );
     }
 
+
     @Override
-    public void reject(ReturnRequest request) {
+    public void reject() {
 
         System.out.println(
-            "Invalid operation: Refund is already being processed."
+                "Invalid operation: Refund processing is already in progress."
         );
     }
 
-    @Override
-    public void cancel(ReturnRequest request) {
 
-        // Cannot cancel while refund is processing
+    @Override
+    public void cancel() {
+
         System.out.println(
-            "Invalid operation: Request cannot be cancelled during refund processing."
+                "Invalid operation: Request cannot be cancelled during refund processing."
         );
     }
 
+
     @Override
-    public void itemDelivered(ReturnRequest request) {
+    public void itemDelivered() {
 
         System.out.println(
-            "Invalid operation: Item has already been delivered."
+                "Invalid operation: Item has already been delivered."
         );
     }
 
+
     @Override
-    public void inspect(ReturnRequest request, boolean eligible) {
+    public void inspect(boolean eligible) {
 
         System.out.println(
-            "Invalid operation: Inspection has already been completed."
+                "Invalid operation: Item has already been inspected."
         );
     }
 
+
     @Override
-    public void refundSuccessful(ReturnRequest request) {
+    public void refundSuccessful() {
 
-        // Processing Refund -> Refunded
-        request.setState(new RefundedState());
+        // Refund succeeded.
+        // Move to the final Refunded state.
+        request.setState(new RefundedState(request));
 
-        System.out.println("Refund successful.");
-        System.out.println("Return request is now refunded.");
+        System.out.println(
+                "Refund successful. Request completed."
+        );
     }
 
-    @Override
-    public void refundFailed(ReturnRequest request) {
 
-        // Stay in ProcessingRefundState.
-        // Therefore, refund can be attempted again later.
+    @Override
+    public void refundFailed() {
+
+        // The refund failed.
+        // Remain in the current state.
+        // The refund can be attempted again later.
         System.out.println(
-            "Refund failed. It can be attempted again later."
+                "Refund failed. You may try again later."
         );
     }
 }
 
 
-// ============================================================
-// 5. REFUNDED STATE
-// ============================================================
+// =========================================================
+// FINAL STATE: REFUNDED
+// =========================================================
+// No operation can change a refunded request.
 
 class RefundedState implements ReturnState {
 
-    @Override
-    public void updateReason(ReturnRequest request, String reason) {
-        System.out.println("Invalid operation: Request is already finalized.");
+    private ReturnRequest request;
+
+
+    public RefundedState(ReturnRequest request) {
+        this.request = request;
     }
 
-    @Override
-    public void approve(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is already finalized.");
+
+    private void invalidOperation() {
+
+        System.out.println(
+                "Invalid operation: Request is already refunded."
+        );
     }
 
-    @Override
-    public void reject(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is already finalized.");
-    }
 
     @Override
-    public void cancel(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is already finalized.");
+    public void updateReason(String reason) {
+        invalidOperation();
     }
 
-    @Override
-    public void itemDelivered(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is already finalized.");
-    }
 
     @Override
-    public void inspect(ReturnRequest request, boolean eligible) {
-        System.out.println("Invalid operation: Request is already finalized.");
+    public void approve() {
+        invalidOperation();
     }
 
-    @Override
-    public void refundSuccessful(ReturnRequest request) {
-        System.out.println("Invalid operation: Refund is already completed.");
-    }
 
     @Override
-    public void refundFailed(ReturnRequest request) {
-        System.out.println("Invalid operation: Refund is already completed.");
+    public void reject() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void cancel() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void itemDelivered() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void inspect(boolean eligible) {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void refundSuccessful() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void refundFailed() {
+        invalidOperation();
     }
 }
 
 
-// ============================================================
-// 6. REJECTED STATE
-// ============================================================
+// =========================================================
+// FINAL STATE: REJECTED
+// =========================================================
+// No operation can change a rejected request.
 
 class RejectedState implements ReturnState {
 
-    // Rejected is a final state.
-    // Therefore, no operation can change the request.
+    private ReturnRequest request;
 
-    @Override
-    public void updateReason(ReturnRequest request, String reason) {
-        System.out.println("Invalid operation: Request is rejected.");
+
+    public RejectedState(ReturnRequest request) {
+        this.request = request;
     }
 
-    @Override
-    public void approve(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is rejected.");
+
+    private void invalidOperation() {
+
+        System.out.println(
+                "Invalid operation: Request is already rejected."
+        );
     }
 
-    @Override
-    public void reject(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is already rejected.");
-    }
 
     @Override
-    public void cancel(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is rejected.");
+    public void updateReason(String reason) {
+        invalidOperation();
     }
 
-    @Override
-    public void itemDelivered(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is rejected.");
-    }
 
     @Override
-    public void inspect(ReturnRequest request, boolean eligible) {
-        System.out.println("Invalid operation: Request is rejected.");
+    public void approve() {
+        invalidOperation();
     }
 
-    @Override
-    public void refundSuccessful(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is rejected.");
-    }
 
     @Override
-    public void refundFailed(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is rejected.");
+    public void reject() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void cancel() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void itemDelivered() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void inspect(boolean eligible) {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void refundSuccessful() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void refundFailed() {
+        invalidOperation();
     }
 }
 
 
-// ============================================================
-// 7. CANCELLED STATE
-// ============================================================
+// =========================================================
+// FINAL STATE: CANCELLED
+// =========================================================
+// No operation can change a cancelled request.
 
 class CancelledState implements ReturnState {
 
-    // Cancelled is a final state.
-    // Therefore, no operation can change the request.
+    private ReturnRequest request;
 
-    @Override
-    public void updateReason(ReturnRequest request, String reason) {
-        System.out.println("Invalid operation: Request is cancelled.");
+
+    public CancelledState(ReturnRequest request) {
+        this.request = request;
     }
 
-    @Override
-    public void approve(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is cancelled.");
+
+    private void invalidOperation() {
+
+        System.out.println(
+                "Invalid operation: Request is already cancelled."
+        );
     }
 
-    @Override
-    public void reject(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is cancelled.");
-    }
 
     @Override
-    public void cancel(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is already cancelled.");
+    public void updateReason(String reason) {
+        invalidOperation();
     }
 
-    @Override
-    public void itemDelivered(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is cancelled.");
-    }
 
     @Override
-    public void inspect(ReturnRequest request, boolean eligible) {
-        System.out.println("Invalid operation: Request is cancelled.");
+    public void approve() {
+        invalidOperation();
     }
 
-    @Override
-    public void refundSuccessful(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is cancelled.");
-    }
 
     @Override
-    public void refundFailed(ReturnRequest request) {
-        System.out.println("Invalid operation: Request is cancelled.");
+    public void reject() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void cancel() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void itemDelivered() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void inspect(boolean eligible) {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void refundSuccessful() {
+        invalidOperation();
+    }
+
+
+    @Override
+    public void refundFailed() {
+        invalidOperation();
     }
 }
 
 
-// ============================================================
+// =========================================================
 // MAIN CLASS
-// ============================================================
+// =========================================================
 
 public class StateB1 {
 
     public static void main(String[] args) {
 
+        // -------------------------------------------------
         // Create a new return request.
         // Initial state = Requested
+        // -------------------------------------------------
+
         ReturnRequest request =
-            new ReturnRequest("Product is defective");
+                new ReturnRequest("Product is defective");
 
-        System.out.println("----- REQUESTED -----");
 
-        // Reason can be changed in Requested state
+        // -------------------------------------------------
+        // Requested State Operations
+        // -------------------------------------------------
+
         request.updateReason("Product is damaged");
 
-        // Approve the request
         request.approve();
 
 
-        System.out.println("\n----- APPROVED -----");
+        // -------------------------------------------------
+        // Approved State Operations
+        // -------------------------------------------------
 
-        // Reason cannot be changed after approval
-        request.updateReason("Wrong size");
+        // This operation is invalid because the reason
+        // cannot be changed after approval.
+        request.updateReason("Changed my mind");
 
-        // Deliver the returned item
+        // Deliver the item.
         request.itemDelivered();
 
 
-        System.out.println("\n----- DELIVERED -----");
+        // -------------------------------------------------
+        // Delivered State Operations
+        // -------------------------------------------------
+
+        // Cancellation is invalid after delivery.
+        request.cancel();
 
         // Inspect the item.
-        // true means item satisfies return policy.
+        // true means the item satisfies the return policy.
         request.inspect(true);
 
 
-        System.out.println("\n----- PROCESSING REFUND -----");
+        // -------------------------------------------------
+        // Processing Refund State Operations
+        // -------------------------------------------------
 
         // First refund attempt fails.
-        // State remains ProcessingRefund.
         request.refundFailed();
 
-        // Try refund again.
+        // Try the refund again.
         request.refundSuccessful();
 
 
-        System.out.println("\n----- REFUNDED -----");
+        // -------------------------------------------------
+        // Refunded State Operations
+        // -------------------------------------------------
 
-        // Refunded is final.
+        // This operation is invalid because the request
+        // has already reached a final state.
         request.cancel();
+
         request.updateReason("Another reason");
     }
 }
-
