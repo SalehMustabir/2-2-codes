@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transform of (t-3)^2</title>
+    <!-- Load Plotly.js for Graphing -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        .graph-container { background: white; margin-bottom: 20px; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1, p { text-align: center; }
+        .note { background-color: #fff3cd; padding: 10px; border-left: 5px solid #ffecb5; margin: 0 auto 20px auto; max-width: 800px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <h1>Transform Cycle: x(t) = (t - 3)²</h1>
+    <div class="note">
+        <b>Note on Infinite Signals:</b> Because a parabola grows to infinity, a computer can only analyze a "windowed" or truncated version of it. The frequency graph below shows the spectrum of this truncated window. The massive spike near 0 Hz represents the 18&pi;&delta;(&omega;) constant energy term derived in the math.
+    </div>
+
+    <div class="graph-container" id="plot1"></div>
+    <div class="graph-container" id="plot2"></div>
+    <div class="graph-container" id="plot3"></div>
+
+    <script>
+        // 1. Set up Parameters for the Parabolic Signal
+        const N = 500;         // Number of samples
+        const Fs = 50;         // Sampling frequency (Hz)
+        const t = [];          // Time vector
+        const x = [];          // Original signal amplitude
+
+        // We will view a 10-second window, from t = -2 to t = 8
+        // This centers the vertex of the parabola, which is at t = 3
+        for (let i = 0; i < N; i++) {
+            let time = (i / Fs) - 2; 
+            t.push(time);
+            
+            // Signal: x(t) = (t - 3)^2
+            let amplitude = Math.pow(time - 3, 2);
+            x.push(amplitude);
+        }
+
+        // 2. Perform Fourier Transform (DFT simulation of CFT)
+        const X_re = new Array(N).fill(0); 
+        const X_im = new Array(N).fill(0); 
+        const freqs = [];                  
+        const magnitudes = [];             
+
+        for (let k = 0; k < N; k++) {
+            let freq = k * (Fs / N);
+            freqs.push(freq);
+            
+            for (let n = 0; n < N; n++) {
+                let angle = (2 * Math.PI * k * n) / N;
+                X_re[k] += x[n] * Math.cos(angle);
+                X_im[k] -= x[n] * Math.sin(angle);
+            }
+            
+            // Calculate magnitude (scaled)
+            magnitudes.push((1 / N) * Math.sqrt(X_re[k]**2 + X_im[k]**2));
+        }
+
+        // We only plot the positive frequencies (first half)
+        const freqs_half = freqs.slice(0, N/2);
+        const magnitudes_half = magnitudes.slice(0, N/2);
+
+        // 3. Perform Inverse Fourier Transform (ICFT simulation)
+        const x_rec = new Array(N).fill(0);
+        for (let n = 0; n < N; n++) {
+            for (let k = 0; k < N; k++) {
+                let angle = (2 * Math.PI * k * n) / N;
+                x_rec[n] += (X_re[k] * Math.cos(angle) - X_im[k] * Math.sin(angle)) / N;
+            }
+        }
+
+        // === PLOTTING THE GRAPHS ===
+
+        // Plot 1: Original Signal (t-3)^2
+        Plotly.newPlot('plot1', [{
+            x: t, y: x, mode: 'lines', line: {color: 'blue', width: 2}, name: '(t - 3)²'
+        }], {
+            title: '1. Original Signal: x(t) = (t - 3)²',
+            xaxis: {title: 'Time (seconds)'},
+            yaxis: {title: 'Amplitude'}
+        });
+
+        // Plot 2: Frequency Domain
+        Plotly.newPlot('plot2', [{
+            x: freqs_half, y: magnitudes_half, 
+            mode: 'lines', 
+            line: {color: 'red', width: 2}, 
+            fill: 'tozeroy', 
+            name: 'Frequencies'
+        }], {
+            title: '2. Frequency Spectrum of Windowed (t - 3)²',
+            xaxis: {title: 'Frequency (Hz)', range: [0, 5]}, // Zoomed in near 0 Hz to see the main components
+            yaxis: {title: 'Magnitude'}
+        });
+
+        // Plot 3: Inverse Fourier Transform (Reconstructed Signal)
+        Plotly.newPlot('plot3', [{
+            x: t, y: x_rec, mode: 'lines', line: {color: 'green', width: 4, dash: 'dot'}, name: 'Reconstructed'
+        }], {
+            title: '3. Reconstructed Signal (Inverse Transform)',
+            xaxis: {title: 'Time (seconds)'},
+            yaxis: {title: 'Amplitude'}
+        });
+
+    </script>
+</body>
+</html>
