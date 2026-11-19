@@ -40,16 +40,22 @@ class DarkRoast extends Beverage
 // 3. The Abstract Decorator (Must mirror the Component type)
 abstract class CondimentDecorator extends Beverage
 {
+    protected Beverage beverage;
+
+    public CondimentDecorator(Beverage beverage)
+    {
+        this.beverage = beverage;
+    }
+
     //Forcing all concrete condiments to re-implement description adjustments
     public abstract String getDescription();
 }
 
 class Mocha extends CondimentDecorator
 {
-    private Beverage beverage;
     public Mocha(Beverage beverage)
     {
-        this.beverage = beverage;
+        super(beverage);
     }
     @Override
     public String getDescription() {
@@ -66,10 +72,9 @@ class Mocha extends CondimentDecorator
 
 class Whip extends CondimentDecorator
 {
-    private Beverage beverage;
     public Whip(Beverage beverage)
     {
-        this.beverage = beverage;
+        super(beverage);
     }
 
     @Override

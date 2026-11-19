@@ -63,6 +63,7 @@ class RelaxationPackage implements PackageBuilder {
     }
 
 }
+
 class AdventurePackage implements PackageBuilder {
     private HolidayPackage pack = new HolidayPackage();
 
@@ -94,6 +95,7 @@ class AdventurePackage implements PackageBuilder {
     }
 
 }
+
 class Director
 {
     static void build(PackageBuilder builder)

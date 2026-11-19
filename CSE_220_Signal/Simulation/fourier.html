@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier series &amp; Fourier transform simulator</title>
+<style>body{margin:0;padding:16px;font-family:system-ui,sans-serif}</style>
+</head>
+<body>
+
+<div class="fs-wrap" id="fsWrap">
+<style>
+.fs-wrap{font-family:var(--kimi-font-sans,system-ui);color:#111;font-size:16px;line-height:24px;max-width:1200px;margin:0 auto}
+.fs-wrap button,.fs-wrap input{font:inherit}
+.fs-wrap svg text{font-family:var(--kimi-font-sans,system-ui)}
+.fs-tabs{display:flex;gap:4px;border-bottom:1px solid #ddd;margin-bottom:16px}
+.fs-tab{background:none;border:none;padding:8px 14px;cursor:pointer;color:#666;font-size:15px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.fs-tab.on{color:#000;border-bottom-color:#000;font-weight:500}
+.fs-body{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.fs-ctl{width:300px;flex:0 0 300px;display:flex;flex-direction:column;gap:16px}
+.fs-stage{flex:1;min-width:340px;display:flex;flex-direction:column;gap:16px}
+.fs-h{font-size:13px;font-weight:500;margin-bottom:6px}
+.fs-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fs-chip{border:1px solid #ddd;background:transparent;border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;color:#666}
+.fs-chip.on{background:#111;color:#fff;border-color:#111}
+.fs-in{width:100%;box-sizing:border-box;border:1px solid #ccc;border-radius:10px;padding:8px 12px;font-family:ui-monospace,monospace;font-size:13px}
+.fs-in:focus{outline:2px solid #111;outline-offset:-1px}
+.fs-hint{font-size:12px;color:#888;line-height:18px;margin-top:6px}
+.fs-err{font-size:13px;color:#c0392b;margin-top:6px}
+.fs-warn{font-size:12px;color:#b8860b;margin-top:6px}
+.fs-slider{display:flex;align-items:center;gap:10px;font-size:14px}
+.fs-slider input[type=range]{flex:1;accent-color:#111}
+.fs-val{min-width:52px;text-align:right;font-variant-numeric:tabular-nums;color:#666;font-size:14px}
+.fs-btn{border:1px solid #ddd;background:transparent;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;align-self:flex-start}
+.fs-btn:hover{background:#f2f2f2}
+.fs-card{border:1px solid #ddd;border-radius:12px;padding:12px 14px;background:#fff}
+.fs-cap{font-size:13px;color:#666;margin-bottom:8px}
+.fs-cap code,.fs-hint code{font-family:ui-monospace,monospace;font-size:12px;color:#111;background:#f2f2f2;border-radius:4px;padding:1px 5px}
+.fs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fs-leg{display:flex;gap:16px;font-size:12px;color:#888;margin-top:6px;flex-wrap:wrap}
+.fs-lg{display:inline-flex;align-items:center;gap:6px}
+.fs-sw{display:inline-block;width:20px;border-top:2px solid var(--c,#2563eb)}
+.fs-tbl{width:100%;border-collapse:collapse;font-family:ui-monospace,monospace;font-size:12px}
+.fs-tbl th{font-family:var(--kimi-font-sans,system-ui);font-weight:500;text-align:left;color:#888;font-size:12px;padding:4px 8px;border-bottom:1px solid #ddd}
+.fs-tbl td{padding:3px 8px;color:#555;border-bottom:1px solid #eee;font-variant-numeric:tabular-nums}
+.fs-tbl tr.sel td{background:#eef4ff;color:#111}
+.fs-scroll{max-height:240px;overflow:auto}
+.fs-pill{display:inline-block;border:1px solid #ddd;border-radius:6px;padding:2px 8px;font-size:12px;color:#666;margin-top:8px;font-variant-numeric:tabular-nums}
+.fs-pill.bad{color:#c0392b;border-color:#c0392b}
+.fs-note{font-size:12px;color:#888;margin-top:8px;line-height:18px}
+.fs-hid{display:none}
+@media(max-width:820px){.fs-grid{grid-template-columns:1fr}.fs-ctl{flex:1 1 100%;width:auto}}
+</style>
+
+<div class="fs-tabs">
+  <button class="fs-tab on" id="tabS">Fourier series</button>
+  <button class="fs-tab" id="tabT">Fourier transform</button>
+</div>
+
+<div class="fs-body">
+  <div class="fs-ctl">
+    <div id="panelS">
+      <div class="fs-h">Preset signals (period T)</div>
+      <div class="fs-chips" id="chipsS"></div>
+      <div class="fs-h" style="margin-top:14px">x(t) on one period [0, T)</div>
+      <input class="fs-in" id="inS" spellcheck="false">
+      <div class="fs-hint">Expression in <code>t</code>, periodically extended. Comparisons give 1/0, e.g. <code>(t&lt;T/2)</code>. Constants: <code>T, w0 = 2π/T, pi, e</code>. Functions: sin cos tan exp sqrt abs log floor ceil round sign step sinc min max pow.</div>
+      <div class="fs-err" id="errS"></div>
+      <div class="fs-warn" id="warnS"></div>
+      <div class="fs-h" style="margin-top:14px">Period</div>
+      <div class="fs-slider"><input type="range" id="slT" min="0.5" max="8" step="0.25" value="2"><span class="fs-val" id="outT">2.00</span></div>
+      <div class="fs-h" style="margin-top:14px">Harmonics in partial sum (−K … K)</div>
+      <div class="fs-slider"><input type="range" id="slK" min="0" max="24" step="1" value="6"><span class="fs-val" id="outK">6</span></div>
+      <button class="fs-btn" id="btnAnimS">▶ animate harmonics</button>
+    </div>
+    <div id="panelT" class="fs-hid">
+      <div class="fs-h">Preset signals</div>
+      <div class="fs-chips" id="chipsT"></div>
+      <div class="fs-h" style="margin-top:14px">x(t)</div>
+      <input class="fs-in" id="inT" spellcheck="false">
+      <div class="fs-hint">Expression in <code>t</code>. Constants: <code>pi, e</code>. Comparisons give 1/0. Pick a window W wide enough that x(t) ≈ 0 at the edges.</div>
+      <div class="fs-err" id="errT"></div>
+      <div class="fs-warn" id="warnT"></div>
+      <div class="fs-h" style="margin-top:14px">Integration window [−W, W]</div>
+      <div class="fs-slider"><input type="range" id="slW" min="2" max="30" step="1" value="10"><span class="fs-val" id="outW">10</span></div>
+      <div class="fs-h" style="margin-top:14px">Inverse bandwidth ω<sub>c</sub></div>
+      <div class="fs-slider"><input type="range" id="slWc" min="1" max="25" step="0.5" value="25"><span class="fs-val" id="outWc">25.0</span></div>
+      <button class="fs-btn" id="btnAnimT">▶ animate bandwidth</button>
+    </div>
+  </div>
+
+  <div class="fs-stage">
+    <div id="stageS">
+      <div class="fs-grid">
+        <div class="fs-card">
+          <div class="fs-cap">Building <code>x(t)</code> from its harmonics: &nbsp;<code>x̂(t) = Σ<sub>k=−K</sub><sup>K</sup> a<sub>k</sub> e<sup>jkω₀t</sup></code></div>
+          <div id="cSsig"></div>
+          <div class="fs-leg"><span class="fs-lg"><i class="fs-sw" style="--c:#2563eb;opacity:.45;border-top-style:dashed"></i>x(t) one period</span><span class="fs-lg"><i class="fs-sw" style="--c:#2563eb"></i>partial sum x̂<sub>K</sub>(t)</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-cap">How much of each frequency: &nbsp;<code>|a<sub>k</sub>|</code> &nbsp;·&nbsp; click a stem to inspect</div>
+          <div id="cSspec"></div>
+          <div class="fs-note" id="capA0"></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-cap">Phase of each frequency: &nbsp;<code>∠a<sub>k</sub></code></div>
+          <div id="cSphase"></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-cap">Extracting a<sub>k</sub>: multiply by <code>e<sup>−jkω₀t</sup></code>, average over one period — everything else rotates away</div>
+          <div id="cSins"></div>
+          <div class="fs-leg"><span class="fs-lg"><i class="fs-sw" style="--c:#2563eb"></i>x(t)·cos(kω₀t) → Re a<sub>k</sub></span><span class="fs-lg"><i class="fs-sw" style="--c:#93b4f5"></i>−x(t)·sin(kω₀t) → Im a<sub>k</sub></span></div>
+          <div class="fs-note" id="insInfo"></div>
+        </div>
+      </div>
+      <div class="fs-card" style="margin-top:16px">
+        <div class="fs-cap">Coefficients <code>a<sub>k</sub> = (1/T)∫<sub>T</sub> x(t)e<sup>−jkω₀t</sup>dt</code>, &nbsp;<code>ω₀ = 2π/T</code></div>
+        <div class="fs-scroll"><table class="fs-tbl"><thead><tr><th>k</th><th>a<sub>k</sub></th><th>|a<sub>k</sub>|</th><th>∠a<sub>k</sub> (deg)</th></tr></thead><tbody id="tblS"></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="stageT" class="fs-hid">
+      <div class="fs-grid">
+        <div class="fs-card">
+          <div class="fs-cap">The aperiodic signal <code>x(t)</code></div>
+          <div id="cTsig"></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-cap">Its spectrum: &nbsp;<code>X(jω) = ∫ x(t)e<sup>−jωt</sup>dt</code></div>
+          <div id="cTmag"></div>
+          <div class="fs-leg"><span class="fs-lg"><i class="fs-sw" style="--c:#2563eb"></i>|X(jω)|</span></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-cap">Phase spectrum: &nbsp;<code>∠X(jω)</code></div>
+          <div id="cTphase"></div>
+        </div>
+        <div class="fs-card">
+          <div class="fs-cap">Inverting with a limited band: &nbsp;<code>x̂(t) = (1/2π)∫<sub>−ωc</sub><sup>ωc</sup> X(jω)e<sup>jωt</sup>dω</code></div>
+          <div id="cTinv"></div>
+          <div class="fs-leg"><span class="fs-lg"><i class="fs-sw" style="--c:#2563eb;opacity:.45;border-top-style:dashed"></i>x(t)</span><span class="fs-lg"><i class="fs-sw" style="--c:#2563eb"></i>x̂(t) from |ω| ≤ ω<sub>c</sub></span></div>
+          <div style="margin-top:8px"><span class="fs-pill" id="errPill"></span></div>
+          <div class="fs-note" id="gibbs"></div>
+        </div>
+      </div>
+      <div class="fs-note" style="margin-top:4px">The Fourier transform is the Fourier series after the period is stretched to infinity: the frequency lines (spacing Δω = 2π/T) merge into a continuous spectrum, and the 1/T in a<sub>k</sub> becomes dω/2π in the inverse integral.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+function tokenize(src){
+  const toks=[]; let i=0;
+  while(i<src.length){
+    const c=src[i];
+    if(c===' '||c==='\t'||c==='\n'||c==='\r'){i++;continue;}
+    if((c>='0'&&c<='9')||(c==='.'&&src[i+1]>='0'&&src[i+1]<='9')){
+      let j=i;
+      while(j<src.length){
+        const ch=src[j];
+        if((ch>='0'&&ch<='9')||ch==='.'){j++;continue;}
+        if((ch==='e'||ch==='E')&&((src[j+1]>='0'&&src[j+1]<='9')||((src[j+1]==='+'||src[j+1]==='-')&&src[j+2]>='0'&&src[j+2]<='9'))){j+=2;continue;}
+        break;
+      }
+      toks.push({t:'num',v:parseFloat(src.slice(i,j))}); i=j; continue;
+    }
+    if(/[a-zA-Z_]/.test(c)){
+      let j=i; while(j<src.length&&/[a-zA-Z0-9_]/.test(src[j])) j++;
+      toks.push({t:'id',v:src.slice(i,j)}); i=j; continue;
+    }
+    const two=src.slice(i,i+2);
+    if(two==='<='||two==='>='||two==='=='||two==='!='){toks.push({t:'op',v:two});i+=2;continue;}
+    if('+-*/%^()<>,!'.indexOf(c)>=0){toks.push({t:'op',v:c});i++;continue;}
+    throw new Error('unexpected character "'+c+'"');
+  }
+  return toks;
+}
+var FUNCS={
+  sin:Math.sin,cos:Math.cos,tan:Math.tan,asin:Math.asin,acos:Math.acos,atan:Math.atan,
+  sinh:Math.sinh,cosh:Math.cosh,tanh:Math.tanh,exp:Math.exp,sqrt:Math.sqrt,abs:Math.abs,
+  log:Math.log,ln:Math.log,floor:Math.floor,ceil:Math.ceil,round:Math.round,
+  sign:Math.sign,min:Math.min,max:Math.max,pow:Math.pow,
+  step:function(x){return x>=0?1:0;},u:function(x){return x>=0?1:0;},
+  sinc:function(x){return x===0?1:Math.sin(x)/x;}
+};
+function parse(src){
+  const toks=tokenize(src); let p=0;
+  const peek=function(){return toks[p];};
+  function expr(){
+    let l=add();
+    const t=peek();
+    if(t&&t.t==='op'&&['<','>','<=','>=','==','!='].indexOf(t.v)>=0){
+      p++; const r=add();
+      return {k:'cmp',op:t.v,l:l,r:r};
+    }
+    return l;
+  }
+  function add(){let l=mul();while(peek()&&peek().t==='op'&&(peek().v==='+'||peek().v==='-')){const op=toks[p++].v;l={k:'bin',op:op,l:l,r:mul()};}return l;}
+  function mul(){let l=pow();while(peek()&&peek().t==='op'&&['*','/','%'].indexOf(peek().v)>=0){const op=toks[p++].v;l={k:'bin',op:op,l:l,r:pow()};}return l;}
+  function pow(){const b=unary();if(peek()&&peek().t==='op'&&peek().v==='^'){p++;return{k:'bin',op:'^',l:b,r:pow()};}return b;}
+  function unary(){const t=peek();if(t&&t.t==='op'&&(t.v==='-'||t.v==='+')){p++;const x=unary();return t.v==='-'?{k:'neg',x:x}:x;}return prim();}
+  function prim(){
+    const t=toks[p++];
+    if(!t) throw new Error('unexpected end of expression');
+    if(t.t==='num') return {k:'num',v:t.v};
+    if(t.t==='id'){
+      if(peek()&&peek().t==='op'&&peek().v==='('){
+        p++; const args=[];
+        if(!(peek()&&peek().t==='op'&&peek().v===')')){
+          args.push(expr());
+          while(peek()&&peek().t==='op'&&peek().v===','){p++;args.push(expr());}
+        }
+        const c=toks[p++];
+        if(!c||c.v!==')') throw new Error('missing ) after '+t.v+'(');
+        return {k:'call',name:t.v,args:args};
+      }
+      return {k:'var',name:t.v};
+    }
+    if(t.t==='op'&&t.v==='('){const e=expr();const c=toks[p++];if(!c||c.v!==')')throw new Error('missing )');return e;}
+    throw new Error('unexpected token "'+(t.v!==undefined?t.v:t)+'"');
+  }
+  const ast=expr();
+  if(p<toks.length) throw new Error('unexpected trailing input near "'+(toks[p].v!==undefined?toks[p].v:toks[p])+'"');
+  return ast;
+}
+function makeFn(src){
+  const ast=parse(src);
+  function ev(n,t,env){
+    if(n.k==='num') return n.v;
+    if(n.k==='var'){
+      if(n.name==='t') return t;
+      if(n.name in env) return env[n.name];
+      if(n.name==='pi') return Math.PI;
+      if(n.name==='e') return Math.E;
+      if(n.name==='tau') return 2*Math.PI;
+      throw new Error('unknown symbol "'+n.name+'"');
+    }
+    if(n.k==='neg') return -ev(n.x,t,env);
+    if(n.k==='bin'){
+      const a=ev(n.l,t,env), b=ev(n.r,t,env);
+      if(n.op==='+')return a+b;
+      if(n.op==='-')return a-b;
+      if(n.op==='*')return a*b;
+      if(n.op==='/')return a/b;
+      if(n.op==='%')return a%b;
+      return Math.pow(a,b);
+    }
+    if(n.k==='cmp'){
+      const a=ev(n.l,t,env), b=ev(n.r,t,env);
+      if(n.op==='<')return a<b?1:0;
+      if(n.op==='>')return a>b?1:0;
+      if(n.op==='<=')return a<=b?1:0;
+      if(n.op==='>=')return a>=b?1:0;
+      if(n.op==='==')return a===b?1:0;
+      return a!==b?1:0;
+    }
+    if(n.k==='call'){
+      const fn=FUNCS[n.name];
+      if(!fn) throw new Error('unknown function "'+n.name+'"');
+      const aa=n.args.map(function(x){return ev(x,t,env);});
+      return fn.apply(null,aa);
+    }
+    throw new Error('bad node');
+  }
+  const clip={n:0};
+  const fn=function(t,env){
+    let v;
+    try{ v=ev(ast,t,env||{}); }catch(e){ clip.n++; return 0; }
+    if(typeof v!=='number'||!isFinite(v)){ clip.n++; return 0; }
+    return v;
+  };
+  return {fn:fn,clip:clip};
+}
+function computeSeries(f,T,Kmax){
+  const N=1024, w0=2*Math.PI/T;
+  const ts=new Float64Array(N), xs=new Float64Array(N);
+  const env={T:T,w0:w0};
+  for(let n=0;n<N;n++){ const t=n*T/N; ts[n]=t; xs[n]=f(t,env); }
+  const aRe=[],aIm=[];
+  for(let k=0;k<=Kmax;k++){
+    let re=0,im=0;
+    for(let n=0;n<N;n++){ const a=k*w0*ts[n]; re+=xs[n]*Math.cos(a); im-=xs[n]*Math.sin(a); }
+    aRe.push(re/N); aIm.push(im/N);
+  }
+  return {T:T,w0:w0,ts:ts,xs:xs,aRe:aRe,aIm:aIm,N:N,Kmax:Kmax};
+}
+function reconSeries(S,t,K){
+  let v=S.aRe[0];
+  for(let k=1;k<=K;k++){ const a=k*S.w0*t; v+=2*(S.aRe[k]*Math.cos(a)-S.aIm[k]*Math.sin(a)); }
+  return v;
+}
+function computeTransform(f,W,WM){
+  const N=1200, M=480;
+  const dt=2*W/N;
+  const ts=new Float64Array(N), xs=new Float64Array(N);
+  for(let n=0;n<N;n++){ const t=-W+(n+0.5)*dt; ts[n]=t; xs[n]=f(t,{}); }
+  const dw=2*WM/M;
+  const wg=new Float64Array(M), wr=new Float64Array(M), wi=new Float64Array(M);
+  for(let m=0;m<M;m++){
+    const w=-WM+(m+0.5)*dw; wg[m]=w;
+    let re=0,im=0;
+    for(let n=0;n<N;n++){ const a=w*ts[n]; re+=xs[n]*Math.cos(a); im-=xs[n]*Math.sin(a); }
+    wr[m]=re*dt; wi[m]=im*dt;
+  }
+  return {W:W,WM:WM,ts:ts,xs:xs,wg:wg,wr:wr,wi:wi,N:N,M:M};
+}
+function inverseT(S,t,wc){
+  const dw=S.wg[1]-S.wg[0];
+  let re=0;
+  for(let m=0;m<S.M;m++){
+    const w=S.wg[m];
+    if(Math.abs(w)>wc) continue;
+    re+=S.wr[m]*Math.cos(w*t)-S.wi[m]*Math.sin(w*t);
+  }
+  return re*dw/(2*Math.PI);
+}
+function niceTicks(min,max,n){
+  if(!(max>min)){min-=1;max+=1;}
+  const step0=(max-min)/n;
+  const mag=Math.pow(10,Math.floor(Math.log10(step0)));
+  let step=mag;
+  const r=step0/mag;
+  if(r>5)step*=10; else if(r>2)step*=5; else if(r>1)step*=2;
+  const start=Math.ceil(min/step)*step;
+  const ticks=[];
+  for(let v=start;v<=max+step*1e-9;v+=step)ticks.push(Math.abs(v)<step*1e-9?0:v);
+  return ticks;
+}
+function fmt(v){
+  if(!isFinite(v))return '—';
+  const a=Math.abs(v);
+  if(a>=10000||(a>0&&a<0.0005))return v.toExponential(1);
+  return String(Math.round(v*1000)/1000);
+}
+function ds(a,n){
+  if(a.length<=n)return a;
+  const st=Math.ceil(a.length/n);
+  const out=[];
+  for(let i=0;i<a.length;i+=st)out.push(a[i]);
+  return out;
+}
+function svgPlot(o){
+  const W=520,H=220,ml=48,mr=14,mt=12,mb=32;
+  const pw=W-ml-mr, ph=H-mt-mb;
+  let xmin=o.xmin,xmax=o.xmax,ymin=o.ymin,ymax=o.ymax;
+  if(xmin===undefined||xmax===undefined){
+    let lo=Infinity,hi=-Infinity;
+    (o.series||[]).forEach(function(s){s.x.forEach(function(v){if(v<lo)lo=v;if(v>hi)hi=v;});});
+    if(o.stems)o.stems.x.forEach(function(v){if(v<lo)lo=v;if(v>hi)hi=v;});
+    if(xmin===undefined)xmin=lo; if(xmax===undefined)xmax=hi;
+  }
+  if(ymin===undefined||ymax===undefined){
+    let lo=Infinity,hi=-Infinity;
+    (o.series||[]).forEach(function(s){s.y.forEach(function(v){if(v===null||!isFinite(v))return; if(v<lo)lo=v;if(v>hi)hi=v;});});
+    if(o.stems)o.stems.y.forEach(function(v){if(v<lo)lo=v;if(v>hi)hi=v;});
+    if(!isFinite(lo)){lo=-1;hi=1;}
+    const pad=(hi-lo)*0.15||1;
+    if(ymin===undefined)ymin=lo-pad; if(ymax===undefined)ymax=hi+pad;
+  }
+  if(!(xmax>xmin)){xmax=xmin+1;}
+  const X=function(v){return ml+(v-xmin)/(xmax-xmin)*pw;};
+  const Y=function(v){return mt+ph-(v-ymin)/(ymax-ymin)*ph;};
+  let s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img">';
+  const xt=niceTicks(xmin,xmax,5), yt=niceTicks(ymin,ymax,4);
+  const yFmt=o.yFmt||fmt;
+  xt.forEach(function(v){
+    s+='<line x1="'+X(v).toFixed(1)+'" y1="'+mt+'" x2="'+X(v).toFixed(1)+'" y2="'+(mt+ph)+'" stroke="#e5e5e5" stroke-width="1"/>';
+    s+='<text x="'+X(v).toFixed(1)+'" y="'+(H-12)+'" font-size="11" fill="#999" text-anchor="middle">'+fmt(v)+'</text>';
+  });
+  yt.forEach(function(v){
+    s+='<line x1="'+ml+'" y1="'+Y(v).toFixed(1)+'" x2="'+(ml+pw)+'" y2="'+Y(v).toFixed(1)+'" stroke="#e5e5e5" stroke-width="1"/>';
+    s+='<text x="'+(ml-6)+'" y="'+(Y(v)+4).toFixed(1)+'" font-size="11" fill="#999" text-anchor="end">'+yFmt(v)+'</text>';
+  });
+  if(ymin<0&&ymax>0)s+='<line x1="'+ml+'" y1="'+Y(0).toFixed(1)+'" x2="'+(ml+pw)+'" y2="'+Y(0).toFixed(1)+'" stroke="#bbb" stroke-width="1.4"/>';
+  if(xmin<0&&xmax>0)s+='<line x1="'+X(0).toFixed(1)+'" y1="'+mt+'" x2="'+X(0).toFixed(1)+'" y2="'+(mt+ph)+'" stroke="#bbb" stroke-width="1.4"/>';
+  (o.hlines||[]).forEach(function(h){
+    s+='<line x1="'+ml+'" y1="'+Y(h.y).toFixed(1)+'" x2="'+(ml+pw)+'" y2="'+Y(h.y).toFixed(1)+'" stroke="'+(h.color||'#bbb')+'" stroke-width="1.2" stroke-dasharray="4 4"/>';
+  });
+  (o.series||[]).forEach(function(sr){
+    const xs=sr.x, ys=sr.y;
+    const col=sr.color||'#2563eb';
+    let d='',start=false;
+    for(let i=0;i<xs.length;i++){
+      const y=ys[i];
+      if(y===null||!isFinite(y)){start=false;continue;}
+      const xx=X(xs[i]).toFixed(1), yy=Y(y).toFixed(1);
+      d+=(start?'L':'M')+xx+' '+yy+' ';
+      start=true;
+    }
+    if(sr.fill){
+      let area='M'+X(xs[0]).toFixed(1)+' '+Y(0).toFixed(1)+' ';
+      for(let i=0;i<xs.length;i++){const y=ys[i]; if(y===null)continue; area+='L'+X(xs[i]).toFixed(1)+' '+Y(y).toFixed(1)+' ';}
+      area+='L'+X(xs[xs.length-1]).toFixed(1)+' '+Y(0).toFixed(1)+' Z';
+      s+='<path d="'+area+'" fill="'+sr.fill+'" stroke="none"/>';
+    }
+    s+='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+(sr.width||2)+'"'+(sr.dash?' stroke-dasharray="'+sr.dash+'"':'')+(sr.opacity?' opacity="'+sr.opacity+'"':'')+' stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+  if(o.stems){
+    const st=o.stems;
+    const baseY=Y(Math.max(ymin,Math.min(ymax,0)));
+    for(let i=0;i<st.x.length;i++){
+      const v=st.y[i];
+      const col=st.sel===st.x[i]?'#d97706':(st.color||'#2563eb');
+      const wd=st.sel===st.x[i]?3:2;
+      if(v===null){
+        s+='<circle cx="'+X(st.x[i]).toFixed(1)+'" cy="'+baseY.toFixed(1)+'" r="2.5" fill="#bbb"/>';
+        continue;
+      }
+      s+='<g data-k="'+st.x[i]+'" style="cursor:pointer"><title>a_'+st.x[i]+' = '+fmt(v)+'</title>';
+      s+='<line x1="'+X(st.x[i]).toFixed(1)+'" y1="'+baseY.toFixed(1)+'" x2="'+X(st.x[i]).toFixed(1)+'" y2="'+Y(v).toFixed(1)+'" stroke="'+col+'" stroke-width="'+wd+'"/>';
+      s+='<circle cx="'+X(st.x[i]).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3" fill="'+col+'"/></g>';
+    }
+  }
+  if(o.xlab)s+='<text x="'+(ml+pw)+'" y="'+(H-12)+'" font-size="11" fill="#aaa" text-anchor="end">'+o.xlab+'</text>';
+  s+='</svg>';
+  return s;
+}
+var el=function(id){return document.getElementById(id);};
+var PRE_S=[
+  {n:'square',e:'(t < T/2)'},
+  {n:'triangle',e:'1 - 2*abs(t - T/2)/T'},
+  {n:'sawtooth',e:'2*t/T - 1'},
+  {n:'cosine',e:'cos(w0*t)'},
+  {n:'slide 25 ex.',e:'1 + sin(w0*t) + 2*cos(w0*t) + cos(2*w0*t + pi/4)'},
+  {n:'custom',e:null}
+];
+var PRE_T=[
+  {n:'rect ±1',e:'(abs(t) < 1)'},
+  {n:'rect 4–10',e:'(t > 4)*(t < 10)'},
+  {n:'windowed cos',e:'cos(3*t) * (abs(t) < 2)'},
+  {n:'damped cos',e:'exp(-0.5*t) * cos(3*t) * (t > 0)'},
+  {n:'gaussian',e:'exp(-t*t/2)'},
+  {n:'spike ≈ δ',e:'exp(-400*t*t)'},
+  {n:'custom',e:null}
+];
+var S={T:2,K:6,Kmax:24,sel:1,data:null,fn:null,clip:{n:0},timer:null,src:'(t < T/2)'};
+var X={W:10,WM:25,wc:25,data:null,fn:null,clip:{n:0},timer:null,src:'(abs(t) < 1)',inited:false};
+var C1='#2563eb', C1M='#93b4f5', FILL='rgba(37,99,235,0.12)';
+function buildChips(holderId,list,onPick){
+  const h=el(holderId); let html='';
+  list.forEach(function(p,i){
+    html+='<button class="fs-chip'+(i===0?' on':'')+'" data-i="'+i+'">'+p.n+'</button>';
+  });
+  h.innerHTML=html;
+  h.addEventListener('click',function(e){
+    const b=e.target.closest?e.target.closest('.fs-chip'):null;
+    if(!b)return;
+    const p=list[+b.dataset.i];
+    h.querySelectorAll('.fs-chip').forEach(function(c){c.classList.remove('on');});
+    b.classList.add('on');
+    onPick(p);
+  });
+}
+function stopTimer(st){ if(st.timer){clearInterval(st.timer); st.timer=null;} }
+function arrFromF(a){const out=new Array(a.length); for(let i=0;i<a.length;i++)out[i]=a[i]; return out;}
+function fmtAK(re,im){
+  const a=Math.abs(im)<5e-4?0:im;
+  return (Math.round(re*1000)/1000)+(a>=0?' + j':' − j')+Math.abs(Math.round(a*1000)/1000);
+}
+function renderSeries(){
+  const D=S.data; if(!D)return;
+  const xs=arrFromF(D.ts), ys=arrFromF(D.xs);
+  const P=400, rx=[],ry=[];
+  for(let i=0;i<=P;i++){ const t=i*D.T/P; rx.push(t); ry.push(reconSeries(D,t,S.K)); }
+  el('cSsig').innerHTML=svgPlot({series:[
+    {x:ds(xs,240),y:ds(ys,240),color:C1,opacity:.55,dash:'5 4',width:1.8},
+    {x:rx,y:ry,color:C1,width:2.2}
+  ],xlab:'t'});
+  const km=[],vm=[];
+  let mx=1e-12;
+  for(let k=0;k<=D.Kmax;k++)mx=Math.max(mx,Math.hypot(D.aRe[k],D.aIm[k]));
+  for(let k=-D.Kmax;k<=D.Kmax;k++){
+    km.push(k);
+    vm.push(Math.hypot(D.aRe[Math.abs(k)],D.aIm[Math.abs(k)]));
+  }
+  el('cSspec').innerHTML=svgPlot({stems:{x:km,y:vm,sel:S.sel},ymin:0,xlab:'kω₀'});
+  const kp=[],vp=[];
+  for(let k=-D.Kmax;k<=D.Kmax;k++){
+    kp.push(k);
+    const m=Math.hypot(D.aRe[Math.abs(k)],D.aIm[Math.abs(k)]);
+    if(m<0.02*mx){vp.push(null);continue;}
+    const ph=Math.atan2(D.aIm[Math.abs(k)],D.aRe[Math.abs(k)]);
+    vp.push(k>=0?ph:-ph);
+  }
+  el('cSphase').innerHTML=svgPlot({stems:{x:kp,y:vp,color:C1},ymin:-Math.PI,ymax:Math.PI,yFmt:function(v){const r=v/Math.PI; return (Math.abs(r)<1e-9?'0':(Math.round(r*100)/100)+'π');},xlab:'kω₀'});
+  const kk=Math.min(Math.abs(S.sel),D.Kmax);
+  const sign=S.sel<0?-1:1;
+  const ix=[],yr=[],yi=[];
+  for(let i=0;i<xs.length;i+=2){
+    ix.push(xs[i]);
+    yr.push(ys[i]*Math.cos(sign*kk*D.w0*xs[i]));
+    yi.push(-ys[i]*Math.sin(sign*kk*D.w0*xs[i]));
+  }
+  const reS=D.aRe[kk], imS=S.sel>=0?D.aIm[kk]:-D.aIm[kk];
+  el('cSins').innerHTML=svgPlot({series:[
+    {x:ix,y:yr,color:C1,width:1.4},
+    {x:ix,y:yi,color:C1M,width:1.4}
+  ],hlines:[{y:reS},{y:imS}],xlab:'t'});
+  el('insInfo').textContent='k̂ = '+S.sel+' →  a_'+S.sel+' = '+fmtAK(reS,imS)+'   (dashed lines are the averages = Re a_'+S.sel+', Im a_'+S.sel+')';
+  el('capA0').textContent='a₀ = '+fmt(D.aRe[0])+' = the average of x(t) over one period.  Stems at ±kω₀ are equal for a real signal.';
+  const rows=[]; const kLim=Math.min(10,D.Kmax);
+  for(let k=-kLim;k<=kLim;k++){
+    const m=Math.hypot(D.aRe[Math.abs(k)],D.aIm[Math.abs(k)]);
+    const ph=(Math.atan2(D.aIm[Math.abs(k)],D.aRe[Math.abs(k)])*(k>=0?1:-1))*180/Math.PI;
+    rows.push('<tr class="'+(k===S.sel?'sel':'')+'"><td>'+k+'</td><td>'+fmtAK(D.aRe[Math.abs(k)],k>=0?D.aIm[Math.abs(k)]:-D.aIm[Math.abs(k)])+'</td><td>'+fmt(m)+'</td><td>'+(m<0.02*mx?'—':Math.round(ph*10)/10)+'</td></tr>');
+  }
+  el('tblS').innerHTML=rows.join('');
+}
+function computeSeriesFromInput(){
+  stopTimer(S);
+  el('btnAnimS').textContent='▶ animate harmonics';
+  const src=el('inS').value;
+  S.src=src;
+  try{
+    const mf=makeFn(src);
+    S.fn=mf.fn; S.clip=mf.clip;
+    S.data=computeSeries(S.fn,S.T,S.Kmax);
+    el('errS').textContent='';
+    el('warnS').textContent=mf.clip.n>0?mf.clip.n+' samples were non-finite (clipped to 0) — check the domain of sqrt/log/divisions.':'';
+    if(Math.abs(S.sel)>S.Kmax)S.sel=1;
+    renderSeries();
+  }catch(e){
+    el('errS').textContent=e.message;
+    el('warnS').textContent='';
+  }
+}
+function renderTransform(){
+  const D=X.data; if(!D)return;
+  const xs=arrFromF(D.ts), ys=arrFromF(D.xs);
+  el('cTsig').innerHTML=svgPlot({series:[{x:ds(xs,320),y:ds(ys,320),color:C1,width:2}],xlab:'t'});
+  const mag=[];
+  let mx=1e-12;
+  for(let m=0;m<D.M;m++){const v=Math.hypot(D.wr[m],D.wi[m]); mag.push(v); mx=Math.max(mx,v);}
+  el('cTmag').innerHTML=svgPlot({series:[{x:arrFromF(D.wg),y:mag,color:C1,width:2,fill:FILL}],ymin:0,xlab:'ω'});
+  const ph=[];
+  for(let m=0;m<D.M;m++){
+    if(mag[m]<0.02*mx){ph.push(null);continue;}
+    ph.push(Math.atan2(D.wi[m],D.wr[m]));
+  }
+  el('cTphase').innerHTML=svgPlot({series:[{x:arrFromF(D.wg),y:ph,color:C1,width:1.6}],ymin:-Math.PI,ymax:Math.PI,yFmt:function(v){const r=v/Math.PI; return (Math.abs(r)<1e-9?'0':(Math.round(r*100)/100)+'π');},xlab:'ω'});
+  const P=420, ix=[],yh=[],yo=[];
+  let maxerr=0;
+  for(let i=0;i<=P;i++){
+    const t=-D.W+2*D.W*i/P;
+    const xr=inverseT(D,t,X.wc);
+    const xo=X.fn(t,{});
+    ix.push(t); yh.push(xr); yo.push(xo);
+    maxerr=Math.max(maxerr,Math.abs(xr-xo));
+  }
+  el('cTinv').innerHTML=svgPlot({series:[
+    {x:ix,y:yo,color:C1,opacity:.55,dash:'5 4',width:1.6},
+    {x:ix,y:yh,color:C1,width:2.2}
+  ],xlab:'t'});
+  const pill=el('errPill');
+  pill.textContent='max |x − x̂| = '+maxerr.toFixed(4);
+  pill.className='fs-pill'+(maxerr>0.05?' bad':'');
+  el('gibbs').textContent=maxerr>0.05?'Residual error concentrates near jumps: x̂ converges to the midpoint of a jump (Gibbs phenomenon). Widen ωc or W to shrink the ripples.':'';
+}
+function computeTransformFromInput(){
+  stopTimer(X);
+  el('btnAnimT').textContent='▶ animate bandwidth';
+  const src=el('inT').value;
+  X.src=src;
+  try{
+    const mf=makeFn(src);
+    X.fn=mf.fn; X.clip=mf.clip;
+    X.data=computeTransform(X.fn,X.W,X.WM);
+    el('errT').textContent='';
+    el('warnT').textContent=mf.clip.n>0?mf.clip.n+' samples were non-finite (clipped to 0) — check the domain of sqrt/log/divisions.':'';
+    renderTransform();
+  }catch(e){
+    el('errT').textContent=e.message;
+    el('warnT').textContent='';
+  }
+}
+var debS=null,debT=null;
+el('inS').addEventListener('input',function(){
+  el('chipsS').querySelectorAll('.fs-chip').forEach(function(c){c.classList.remove('on');});
+  clearTimeout(debS); debS=setTimeout(computeSeriesFromInput,350);
+});
+el('inT').addEventListener('input',function(){
+  el('chipsT').querySelectorAll('.fs-chip').forEach(function(c){c.classList.remove('on');});
+  clearTimeout(debT); debT=setTimeout(computeTransformFromInput,350);
+});
+el('slT').addEventListener('input',function(){
+  S.T=parseFloat(this.value);
+  el('outT').textContent=S.T.toFixed(2);
+  computeSeriesFromInput();
+});
+el('slK').addEventListener('input',function(){
+  S.K=parseInt(this.value,10);
+  el('outK').textContent=S.K;
+  stopTimer(S); el('btnAnimS').textContent='▶ animate harmonics';
+  renderSeries();
+});
+el('slW').addEventListener('input',function(){
+  X.W=parseFloat(this.value);
+  el('outW').textContent=String(X.W);
+  computeTransformFromInput();
+});
+el('slWc').addEventListener('input',function(){
+  X.wc=parseFloat(this.value);
+  el('outWc').textContent=X.wc.toFixed(1);
+  stopTimer(X); el('btnAnimT').textContent='▶ animate bandwidth';
+  renderTransform();
+});
+el('btnAnimS').addEventListener('click',function(){
+  if(S.timer){stopTimer(S); this.textContent='▶ animate harmonics'; return;}
+  if(S.K>=S.Kmax)S.K=0;
+  const self=this;
+  S.timer=setInterval(function(){
+    S.K++;
+    el('slK').value=S.K;
+    el('outK').textContent=S.K;
+    renderSeries();
+    if(S.K>=S.Kmax){stopTimer(S); self.textContent='▶ animate harmonics';}
+  },160);
+  this.textContent='❚❚ stop';
+});
+el('btnAnimT').addEventListener('click',function(){
+  if(X.timer){stopTimer(X); this.textContent='▶ animate bandwidth'; return;}
+  if(X.wc>=X.WM)X.wc=1;
+  const self=this;
+  X.timer=setInterval(function(){
+    X.wc+=0.5;
+    el('slWc').value=X.wc;
+    el('outWc').textContent=X.wc.toFixed(1);
+    renderTransform();
+    if(X.wc>=X.WM){stopTimer(X); self.textContent='▶ animate bandwidth';}
+  },120);
+  this.textContent='❚❚ stop';
+});
+el('cSspec').addEventListener('click',function(e){
+  const g=e.target&&e.target.closest?e.target.closest('g[data-k]'):null;
+  if(!g)return;
+  S.sel=parseInt(g.getAttribute('data-k'),10);
+  renderSeries();
+});
+el('tabS').addEventListener('click',function(){
+  el('tabS').classList.add('on'); el('tabT').classList.remove('on');
+  el('stageS').classList.remove('fs-hid'); el('stageT').classList.add('fs-hid');
+  el('panelS').classList.remove('fs-hid'); el('panelT').classList.add('fs-hid');
+});
+el('tabT').addEventListener('click',function(){
+  el('tabT').classList.add('on'); el('tabS').classList.remove('on');
+  el('stageT').classList.remove('fs-hid'); el('stageS').classList.add('fs-hid');
+  el('panelT').classList.remove('fs-hid'); el('panelS').classList.add('fs-hid');
+  if(!X.inited){X.inited=true; computeTransformFromInput();}
+});
+buildChips('chipsS',PRE_S,function(p){
+  if(p.e!==null){el('inS').value=p.e; computeSeriesFromInput();}
+  else{el('inS').focus();}
+});
+buildChips('chipsT',PRE_T,function(p){
+  if(p.e!==null){el('inT').value=p.e; computeTransformFromInput();}
+  else{el('inT').focus();}
+});
+el('inS').value=S.src;
+el('inT').value=X.src;
+computeSeriesFromInput();
+})();
+</script>
+</div>
+
+</body>
+</html>
